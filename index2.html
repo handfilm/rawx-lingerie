@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAWx_ARCHIVE_ENGINE // MAXIMUM</title>
+<style>
+:root { --black:#0b0b0b; --white:#f4f4f4; --gray:#1a1a1a; --yellow:#ffe000; --red:#ff2020; --border:2px solid #333; --mono:'Courier New', Courier, monospace; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+body { background: var(--black); color: var(--white); font-family: var(--mono); margin: 0; cursor: crosshair; overflow-x: hidden; }
+button, input { font-family: var(--mono); cursor: crosshair; }
+::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-thumb { background: var(--yellow); }
+svg.icon { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; display: block; }
+
+/* Brutalist Header & Toolbar */
+.site-header { background: #000; padding: 20px; border-bottom: var(--border); display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
+.site-title { font-size: 3rem; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; line-height: 0.8; margin: 0; }
+.site-title span { color: var(--yellow); }
+.counter-badge { font-size: 11px; letter-spacing: 2px; color: var(--yellow); text-transform: uppercase; }
+
+.toolbar { position: sticky; top: 0; background: #111; border-bottom: var(--border); display: flex; z-index: 100; overflow-x: auto; align-items: stretch; }
+.btn { padding: 12px 18px; border: none; border-right: var(--border); background: transparent; color: #888; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+.btn:hover { color: var(--white); background: #222; }
+.btn.active { background: var(--yellow); color: var(--black); font-weight: bold; }
+.btn.view-btn.active { background: var(--red); color: var(--white); }
+.search-wrap { display: flex; align-items: center; gap: 8px; border-right: var(--border); padding: 0 14px; color: #888; background: #111; }
+.search-wrap input { border: none; background: none; outline: none; font-size: 12px; width: 150px; text-transform: uppercase; color: var(--white); font-weight: bold; }
+
+.tagbar { display: flex; background: #0a0a0a; overflow-x: auto; border-bottom: var(--border); }
+.tag-chip { padding: 12px 20px; border-right: 1px solid #222; color: #666; display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 11px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; transition: 0.2s; cursor: pointer; }
+.tag-chip:hover { color: var(--white); background: #1a1a1a; }
+.tag-chip.active { background: var(--yellow); color: var(--black); border-right-color: var(--yellow); }
+.tag-count { opacity: .7; font-size: 10px; }
+
+/* Maximum Gallery Engine */
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px; background: var(--black); border: 4px solid var(--black); min-height: 50vh; }
+.gallery.masonry { display: block; columns: 320px; column-gap: 4px; }
+.gallery.masonry .card { break-inside: avoid; margin-bottom: 4px; aspect-ratio: auto; }
+.gallery.list { display: block; }
+.gallery.list .card { aspect-ratio: auto; display: flex; align-items: center; border-bottom: 2px solid #222; background: #111; }
+.gallery.list .card .media-wrap { width: 140px; height: 100px; flex-shrink: 0; }
+.gallery.list .card-meta { position: static; opacity: 1; background: none; padding: 12px 16px; color: var(--white); border: none; }
+
+.card { position: relative; background: var(--gray); overflow: hidden; aspect-ratio: 1; border: 1px solid #222; }
+.media-wrap { position: relative; width: 100%; height: 100%; cursor: zoom-in; }
+.card img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(30%) contrast(1.1); transition: transform .4s ease, filter .4s ease; display: block; opacity: 0; }
+.card img.loaded { opacity: 1; }
+.card:hover img { transform: scale(1.05); filter: grayscale(0%) contrast(1.2); }
+.card-meta { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,.9); border-top: 1px solid var(--yellow); color: var(--yellow); padding: 12px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0; transition: opacity .2s; pointer-events: none; display: flex; justify-content: space-between; align-items: flex-end; font-weight: bold; }
+.card:hover .card-meta { opacity: 1; }
+.empty-state { color: #666; text-transform: uppercase; font-size: 12px; padding: 60px 20px; text-align: center; grid-column: 1/-1; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+/* Cinematic Lightbox + Filmstrip + B2B */
+#lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.98); z-index: 1000; flex-direction: column; }
+.lb-top { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; color: var(--yellow); font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #222; background: #000; }
+.lb-actions { display: flex; gap: 8px; }
+.lb-btn { background: none; border: 1px solid #444; color: var(--white); padding: 8px; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+.lb-btn:hover { background: var(--yellow); color: var(--black); border-color: var(--yellow); }
+.lb-close:hover { background: var(--red); border-color: var(--red); color: var(--white); }
+
+.lb-stage { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; padding: 0 70px; }
+.lb-stage img { max-width: 100%; max-height: 70vh; outline: 2px solid #333; cursor: zoom-in; transition: transform .3s ease; }
+.lb-stage img.zoomed { max-width: none; max-height: none; height: 130vh; cursor: zoom-out; }
+
+.lb-nav { position: absolute; top: 0; bottom: 0; width: 70px; background: none; border: none; color: var(--white); display: flex; align-items: center; justify-content: center; opacity: .3; transition: 0.2s; }
+.lb-nav svg { width: 32px; height: 32px; }
+.lb-nav:hover { opacity: 1; background: rgba(255,255,255,.05); }
+.lb-nav.prev { left: 0; } .lb-nav.next { right: 0; }
+
+.lb-metadata { background: #0a0a0a; padding: 15px 20px; border-top: 1px solid #222; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+.meta-prompt { font-size: 10px; color: #666; letter-spacing: 1px; max-width: 70%; line-height: 1.4; }
+.meta-prompt span { color: var(--white); font-weight: bold; }
+.b2b-btn { background: var(--yellow); color: var(--black); border: none; padding: 12px 24px; font-family: var(--mono); font-weight: bold; font-size: 12px; text-transform: uppercase; cursor: pointer; letter-spacing: 1px; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+.b2b-btn:hover { background: var(--white); }
+
+.filmstrip { display: flex; gap: 4px; overflow-x: auto; padding: 15px 20px; background: #000; border-top: 1px solid #111; }
+.fs-thumb { width: 60px; height: 60px; object-fit: cover; opacity: .3; filter: grayscale(80%); flex-shrink: 0; border: 2px solid transparent; cursor: pointer; transition: 0.2s; }
+.fs-thumb:hover { opacity: 0.8; }
+.fs-thumb.active { opacity: 1; filter: grayscale(0%); border-color: var(--yellow); }
+
+@media (max-width: 768px) {
+  .site-title { font-size: 2rem; }
+  .lb-stage { padding: 0 40px; }
+  .lb-nav { width: 40px; }
+  .lb-nav svg { width: 24px; height: 24px; }
+  .filmstrip { display: none; }
+  .meta-prompt { max-width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+    <div class="site-title">RAWx<span>//</span>ARCHIVE</div>
+    <div class="counter-badge" id="counter-badge">SYSTEM LOADED</div>
+</header>
+
+<div class="toolbar" id="toolbar"></div>
+<div class="tagbar" id="tagbar"></div>
+<div class="gallery" id="grid"></div>
+
+<div id="lightbox">
+    <div class="lb-top">
+        <span id="lb-title">FRAME_DATA</span>
+        <div class="lb-actions">
+            <button class="lb-btn" id="lb-fullscreen" onclick="toggleFullscreen()" title="Fullscreen"></button>
+            <a class="lb-btn" id="lb-download" download title="Download"></a>
+            <button class="lb-btn lb-close" onclick="closeLb()" title="Close"></button>
+        </div>
+    </div>
+    
+    <div class="lb-stage" id="lb-stage">
+        <button class="lb-nav prev" onclick="navLb(-1)" title="Previous"></button>
+        <div id="lb-media-holder" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"></div>
+        <button class="lb-nav next" onclick="navLb(1)" title="Next"></button>
+    </div>
+
+    <div class="lb-metadata">
+        <div class="meta-prompt">
+            <strong>TECHNICAL PROTOCOL:</strong> <br>
+            <span id="lb-prompt-text">8K resolution, Hasselblad quality, 85mm lens simulation, brutalist industrial realism</span>
+        </div>
+        <button class="b2b-btn" onclick="window.open('https://handfilm.myshopify.com/', '_blank')">
+            INITIATE B2B INVOICE
+        </button>
+    </div>
+
+    <div class="filmstrip" id="filmstrip"></div>
+</div>
+
+<script>
+/* 1. RESTORED SVG ICONS */
+const ICONS = {
+    all: `<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>`,
+    popular: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2l2.4 6.8L21 11l-6.6 2.2L12 20l-2.4-6.8L3 11l6.6-2.2z"/></svg>`,
+    az: `<svg class="icon" viewBox="0 0 24 24"><path d="M3 8l4-5 4 5M3.5 6.5h7M17 3v18M13 17l4 4 4-4"/></svg>`,
+    grid: `<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`,
+    masonry: `<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="10"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="11" width="6" height="10"/></svg>`,
+    list: `<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="4" height="4"/><rect x="3" y="10" width="4" height="4"/><rect x="3" y="16" width="4" height="4"/><path d="M10 6h11M10 12h11M10 18h11"/></svg>`,
+    search: `<svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>`,
+    close: `<svg class="icon" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>`,
+    fullscreen: `<svg class="icon" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>`,
+    download: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 3v13M7 11l5 5 5-5M4 21h16"/></svg>`,
+    prev: `<svg class="icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>`,
+    next: `<svg class="icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>`
+};
+function icon(name) { return ICONS[name] || ''; }
+
+/* 2. THE MEDIA URL & YOUR DATA */
+const BASE = 'https://media.githubusercontent.com/media/handfilm/rawx-lingerie/main/assets/images/';
+
+// PASTE YOUR FULL TXT FILE CONTENT HERE inside the brackets:
+const rawFiles = [
+    "2set (1).jpg", "2set (1).webp", "2set (10).webp", "2set (11).webp", "2set (12).webp", "2set (13).webp", "2set (14).webp", "2set (15).webp", "2set (16).webp", "2set (17).webp", "2set (18).webp", "2set (19).webp", "2set (2).jpg", "2set (2).webp", "2set (20).webp", "2set (21).webp", "2set (22).webp", "2set (23).webp", "2set (24).webp", "2set (25).webp", "2set (26).webp", "2set (27).webp", "2set (28).webp", "2set (29).webp", "2set (3).jpg", "2set (3).webp", "2set (30).webp", "2set (31).webp", "2set (32).webp", "2set (33).webp", "2set (4).jpg", "2set (4).webp", "2set (5).jpg", "2set (5).webp", "2set (6).jpg", "2set (6).webp", "2set (7).webp", "2set (8).webp", "2set (9).webp", "2set.jpg", "2set.webp", "56915.webp", "activewear (1).webp", "activewear (10).webp", "activewear (11).webp", "activewear (12).webp", "activewear (13).webp", "activewear (14).webp", "activewear (15).webp", "activewear (16).webp", "activewear (17).webp", "activewear (18).webp", "activewear (19).webp", "activewear (2).webp", "activewear (20).webp", "activewear (21).webp", "activewear (22).webp", "activewear (23).webp", "activewear (24).webp", "activewear (25).webp", "activewear (26).webp", "activewear (27).webp", "activewear (28).webp", "activewear (29).webp", "activewear (3).webp", "activewear (30).webp", "activewear (31).webp", "activewear (32).webp", "activewear (33).webp", "activewear (34).webp", "activewear (35).webp", "activewear (36).webp", "activewear (37).webp", "activewear (38).webp", "activewear (39).webp", "activewear (4).webp", "activewear (40).webp", "activewear (41).webp", "activewear (42).webp", "activewear (43).webp", "activewear (44).webp", "activewear (45).webp", "activewear (46).webp", "activewear (47).webp", "activewear (48).webp", "activewear (49).webp", "activewear (5).webp", "activewear (50).webp", "activewear (51).webp", "activewear (52).webp", "activewear (53).webp", "activewear (54).webp", "activewear (55).webp", "activewear (56).webp", "activewear (57).webp", "activewear (58).webp", "activewear (59).webp", "activewear (6).webp", "activewear (7).webp", "activewear (8).webp", "activewear (9).webp", "assd.jpg", "bodysuit (1).webp", "bodysuit (11).jpeg", "bodysuit (12).jpeg", "bodysuit (13).jpeg", "bodysuit (14).jpeg", "bodysuit (14).png", "bodysuit (15).jpeg", "bodysuit (15).png", "bodysuit (16).jpeg", "bodysuit (16).webp", "bodysuit (17).jpeg", "bodysuit (17).webp", "bodysuit (18).jpeg", "bodysuit (18).webp", "bodysuit (19).webp", "bodysuit (2).webp", "bodysuit (20).webp", "bodysuit (3).webp", "bodysuit (4).webp", "bodysuit (5).webp", "bodysuit (6).webp", "bodysuit (61).jpg", "bodysuit (7).webp", "bodysuit (8).webp", "bodysuit (9).webp", "bodysuit.jpg", "bodysuit.webp", "essential (1).webp", "essential (2).webp", "essential (3).webp", "essential (4).webp", "essential (5).webp", "essential (6).webp", "essential (7).webp", "essential (8).webp", "essential (9).webp", "filelist.txt", "Hunkemoller (1).jpg", "Hunkemoller (1).webp", "Hunkemoller (10).jpg", "Hunkemoller (10).webp", "Hunkemoller (100).jpg", "Hunkemoller (100).webp", "Hunkemoller (101).jpg", "Hunkemoller (101).webp", "Hunkemoller (102).jpg", "Hunkemoller (102).webp", "Hunkemoller (103).jpg", "Hunkemoller (103).webp", "Hunkemoller (104).jpg", "Hunkemoller (104).webp", "Hunkemoller (105).jpg", "Hunkemoller (105).webp", "Hunkemoller (106).jpg", "Hunkemoller (106).webp", "Hunkemoller (107).jpg", "Hunkemoller (107).webp", "Hunkemoller (108).jpg", "Hunkemoller (108).webp", "Hunkemoller (109).jpg", "Hunkemoller (109).webp", "Hunkemoller (11).jpg", "Hunkemoller (11).webp", "Hunkemoller (110).jpg", "Hunkemoller (110).webp", "Hunkemoller (111).jpg", "Hunkemoller (111).webp", "Hunkemoller (112).jpg", "Hunkemoller (112).webp", "Hunkemoller (113).jpg", "Hunkemoller (113).webp", "Hunkemoller (114).jpg", "Hunkemoller (114).webp", "Hunkemoller (115).jpg", "Hunkemoller (115).webp", "Hunkemoller (116).jpg", "Hunkemoller (116).webp", "Hunkemoller (117).jpg", "Hunkemoller (117).webp", "Hunkemoller (118).webp", "Hunkemoller (119).webp", "Hunkemoller (12).jpg", "Hunkemoller (12).webp", "Hunkemoller (120).webp", "Hunkemoller (121).webp", "Hunkemoller (122).webp", "Hunkemoller (123).webp", "Hunkemoller (124).webp", "Hunkemoller (125).webp", "Hunkemoller (126).webp", "Hunkemoller (127).webp", "Hunkemoller (128).webp", "Hunkemoller (129).webp", "Hunkemoller (13).jpg", "Hunkemoller (13).webp", "Hunkemoller (130).webp", "Hunkemoller (131).webp", "Hunkemoller (132).webp", "Hunkemoller (133).webp", "Hunkemoller (134).webp", "Hunkemoller (135).webp", "Hunkemoller (136).webp", "Hunkemoller (137).webp", "Hunkemoller (138).webp", "Hunkemoller (139).webp", "Hunkemoller (14).jpg", "Hunkemoller (14).webp", "Hunkemoller (140).webp", "Hunkemoller (141).webp", "Hunkemoller (142).webp", "Hunkemoller (143).webp", "Hunkemoller (144).webp", "Hunkemoller (145).webp", "Hunkemoller (146).webp", "Hunkemoller (147).webp", "Hunkemoller (148).webp", "Hunkemoller (149).webp", "Hunkemoller (15).jpg", "Hunkemoller (15).webp", "Hunkemoller (150).webp", "Hunkemoller (151).webp", "Hunkemoller (152).webp", "Hunkemoller (153).webp", "Hunkemoller (154).webp", "Hunkemoller (155).webp", "Hunkemoller (156).webp", "Hunkemoller (157).webp", "Hunkemoller (158).webp", "Hunkemoller (159).webp", "Hunkemoller (16).jpg", "Hunkemoller (16).webp", "Hunkemoller (160).webp", "Hunkemoller (161).webp", "Hunkemoller (162).webp", "Hunkemoller (163).webp", "Hunkemoller (164).webp", "Hunkemoller (165).webp", "Hunkemoller (166).webp", "Hunkemoller (167).webp", "Hunkemoller (168).webp", "Hunkemoller (169).webp", "Hunkemoller (17).jpg", "Hunkemoller (17).webp", "Hunkemoller (170).webp", "Hunkemoller (171).webp", "Hunkemoller (172).webp", "Hunkemoller (173).webp", "Hunkemoller (174).webp", "Hunkemoller (175).webp", "Hunkemoller (176).webp", "Hunkemoller (177).webp", "Hunkemoller (178).webp", "Hunkemoller (179).webp", "Hunkemoller (18).jpg", "Hunkemoller (18).webp", "Hunkemoller (180).webp", "Hunkemoller (181).webp", "Hunkemoller (182).webp", "Hunkemoller (183).webp", "Hunkemoller (184).webp", "Hunkemoller (185).webp", "Hunkemoller (186).webp", "Hunkemoller (187).webp", "Hunkemoller (19).jpg", "Hunkemoller (19).webp", "Hunkemoller (2).jpg", "Hunkemoller (2).webp", "Hunkemoller (20).jpg", "Hunkemoller (20).webp", "Hunkemoller (21).jpg", "Hunkemoller (21).webp", "Hunkemoller (22).jpg", "Hunkemoller (22).webp", "Hunkemoller (23).jpg", "Hunkemoller (23).webp", "Hunkemoller (24).jpg", "Hunkemoller (24).webp", "Hunkemoller (25).jpg", "Hunkemoller (25).webp", "Hunkemoller (26).jpg", "Hunkemoller (26).webp", "Hunkemoller (27).jpg", "Hunkemoller (27).webp", "Hunkemoller (28).jpg", "Hunkemoller (28).webp", "Hunkemoller (29).jpg", "Hunkemoller (29).webp", "Hunkemoller (3).jpg", "Hunkemoller (3).webp", "Hunkemoller (30).jpg", "Hunkemoller (30).webp", "Hunkemoller (31).jpg", "Hunkemoller (31).webp", "Hunkemoller (32).jpg", "Hunkemoller (32).webp", "Hunkemoller (33).jpg", "Hunkemoller (33).webp", "Hunkemoller (34).jpg", "Hunkemoller (34).webp", "Hunkemoller (35).jpg", "Hunkemoller (35).webp", "Hunkemoller (36).jpg", "Hunkemoller (36).webp", "Hunkemoller (37).jpg", "Hunkemoller (37).webp", "Hunkemoller (38).jpg", "Hunkemoller (38).webp", "Hunkemoller (39).jpg", "Hunkemoller (39).webp", "Hunkemoller (4).jpg", "Hunkemoller (4).webp", "Hunkemoller (40).jpg", "Hunkemoller (40).webp", "Hunkemoller (41).jpg", "Hunkemoller (41).webp", "Hunkemoller (42).jpg", "Hunkemoller (42).webp", "Hunkemoller (43).jpg", "Hunkemoller (43).webp", "Hunkemoller (44).jpg", "Hunkemoller (44).webp", "Hunkemoller (45).jpg", "Hunkemoller (45).webp", "Hunkemoller (46).jpg", "Hunkemoller (46).webp", "Hunkemoller (47).jpg", "Hunkemoller (47).webp", "Hunkemoller (48).jpg", "Hunkemoller (48).webp", "Hunkemoller (49).jpg", "Hunkemoller (49).webp", "Hunkemoller (5).jpg", "Hunkemoller (5).webp", "Hunkemoller (50).jpg", "Hunkemoller (50).webp", "Hunkemoller (51).jpg", "Hunkemoller (51).webp", "Hunkemoller (52).jpg", "Hunkemoller (52).webp", "Hunkemoller (53).jpg", "Hunkemoller (53).webp", "Hunkemoller (54).jpg", "Hunkemoller (54).webp", "Hunkemoller (55).jpg", "Hunkemoller (55).webp", "Hunkemoller (56).jpg", "Hunkemoller (56).webp", "Hunkemoller (57).jpg", "Hunkemoller (57).webp", "Hunkemoller (58).jpg", "Hunkemoller (58).webp", "Hunkemoller (59).jpg", "Hunkemoller (59).webp", "Hunkemoller (6).jpg", "Hunkemoller (6).webp", "Hunkemoller (60).jpg", "Hunkemoller (60).webp", "Hunkemoller (61).jpg", "Hunkemoller (61).webp", "Hunkemoller (62).jpg", "Hunkemoller (62).webp", "Hunkemoller (63).jpg", "Hunkemoller (63).webp", "Hunkemoller (64).jpg", "Hunkemoller (64).webp", "Hunkemoller (65).jpg", "Hunkemoller (65).webp", "Hunkemoller (66).jpg", "Hunkemoller (66).webp", "Hunkemoller (67).jpg", "Hunkemoller (67).webp", "Hunkemoller (68).jpg", "Hunkemoller (68).webp", "Hunkemoller (69).jpg", "Hunkemoller (69).webp", "Hunkemoller (7).jpg", "Hunkemoller (7).webp", "Hunkemoller (70).jpg", "Hunkemoller (70).webp", "Hunkemoller (71).jpg", "Hunkemoller (71).webp", "Hunkemoller (72).jpg", "Hunkemoller (72).webp", "Hunkemoller (73).jpg", "Hunkemoller (73).webp", "Hunkemoller (74).jpg", "Hunkemoller (74).webp", "Hunkemoller (75).jpg", "Hunkemoller (75).webp", "Hunkemoller (76).jpg", "Hunkemoller (76).webp", "Hunkemoller (77).jpg", "Hunkemoller (77).webp", "Hunkemoller (78).jpg", "Hunkemoller (78).webp", "Hunkemoller (79).jpg", "Hunkemoller (79).webp", "Hunkemoller (8).jpg", "Hunkemoller (8).webp", "Hunkemoller (80).jpg", "Hunkemoller (80).webp", "Hunkemoller (81).jpg", "Hunkemoller (81).webp", "Hunkemoller (82).jpg", "Hunkemoller (82).webp", "Hunkemoller (83).jpg", "Hunkemoller (83).webp", "Hunkemoller (84).jpg", "Hunkemoller (84).webp", "Hunkemoller (85).jpg", "Hunkemoller (85).webp", "Hunkemoller (86).jpg", "Hunkemoller (86).webp", "Hunkemoller (87).jpg", "Hunkemoller (87).webp", "Hunkemoller (88).jpg", "Hunkemoller (88).webp", "Hunkemoller (89).jpg", "Hunkemoller (89).webp", "Hunkemoller (9).jpg", "Hunkemoller (9).webp", "Hunkemoller (90).jpg", "Hunkemoller (90).webp", "Hunkemoller (91).jpg", "Hunkemoller (91).webp", "Hunkemoller (92).jpg", "Hunkemoller (92).webp", "Hunkemoller (93).jpg", "Hunkemoller (93).webp", "Hunkemoller (94).jpg", "Hunkemoller (94).webp", "Hunkemoller (95).jpg", "Hunkemoller (95).webp", "Hunkemoller (96).jpg", "Hunkemoller (96).webp", "Hunkemoller (97).jpg", "Hunkemoller (97).webp", "Hunkemoller (98).jpg", "Hunkemoller (98).webp", "Hunkemoller (99).jpg", "Hunkemoller (99).webp", "ig (1).png", "ig (1).webp", "ig (10).webp", "ig (11).webp", "ig (12).webp", "ig (13).webp", "ig (2).jpg", "ig (2).webp", "ig (3).webp", "ig (4).webp", "ig (5).webp", "ig (6).webp", "ig (7).webp", "ig (8).webp", "ig (9).webp", "image (13).jpg", "image (14).jpg", "image (15).jpg", "image (16).jpg", "image (17).jpg", "image (18).jpg", "image (19).jpg", "image (20).jpg", "images (19).jpeg", "images (20).jpeg", "images (21).jpeg", "images (22).jpeg", "images (23).jpeg", "images (24).jpeg", "images (25).jpeg", "Lingerie (1).webp", "Lingerie (10).webp", "Lingerie (11).webp", "Lingerie (12).webp", "Lingerie (13).webp", "Lingerie (14).webp", "Lingerie (15).webp", "Lingerie (16).webp", "Lingerie (17).webp", "Lingerie (18).webp", "Lingerie (19).webp", "Lingerie (2).webp", "Lingerie (20).webp", "Lingerie (21).webp", "Lingerie (22).webp", "Lingerie (23).webp", "Lingerie (24).webp", "Lingerie (25).webp", "Lingerie (26).webp", "Lingerie (27).webp", "Lingerie (28).webp", "Lingerie (29).webp", "Lingerie (3).webp", "Lingerie (30).webp", "Lingerie (31).webp", "Lingerie (32).webp", "Lingerie (33).webp", "Lingerie (34).webp", "Lingerie (4).webp", "Lingerie (5).webp", "Lingerie (6).webp", "Lingerie (7).webp", "Lingerie (8).webp", "Lingerie (9).webp", "panty (1).webp", "panty (10).webp", "panty (11).webp", "panty (12).webp", "panty (13).webp", "panty (14).webp", "panty (15).webp", "panty (16).webp", "panty (17).webp", "panty (18).webp", "panty (19).webp", "panty (2).webp", "panty (20).webp", "panty (21).webp", "panty (22).webp", "panty (23).webp", "panty (24).webp", "panty (25).webp", "panty (26).webp", "panty (27).webp", "panty (28).webp", "panty (29).webp", "panty (3).webp", "panty (30).webp", "panty (31).webp", "panty (32).webp", "panty (33).webp", "panty (34).webp", "panty (35).webp", "panty (4).webp", "panty (5).webp", "panty (6).webp", "panty (7).webp", "panty (8).webp", "panty (9).webp", "pin (1).jpg", "pin (10).jpg", "pin (11).jpg", "pin (12).jpg", "pin (13).jpg", "pin (14).jpg", "pin (15).jpg", "pin (16).jpg", "pin (17).jpg", "pin (18).jpg", "pin (19).jpg", "pin (2).jpg", "pin (20).jpg", "pin (21).jpg", "pin (22).jpg", "pin (23).jpg", "pin (24).jpg", "pin (25).jpg", "pin (26).jpg", "pin (27).jpg", "pin (28).jpg", "pin (29).jpg", "pin (30).jpg", "pin (31).jpg", "pin (32).jpg", "pin (33).jpg", "pin (34).jpg", "pin (36).jpg", "pin (37).jpg", "pin (38).jpg", "pin (39).jpg", "pin (4).jpg", "pin (40).jpg", "pin (41).jpg", "pin (42).jpg", "pin (43).jpg", "pin (45).jpg", "pin (46).jpg", "pin (47).jpg", "pin (48).jpg", "pin (49).jpg", "pin (5).jpg", "pin (50).jpg", "pin (51).jpg", "pin (52).jpg", "pin (54).jpg", "pin (55).jpg", "pin (56).jpg", "pin (57).jpg", "pin (58).jpg", "pin (59).jpg", "pin (6).jpg", "pin (60).jpg", "pin (61).jpg", "pin (62).jpg", "pin (63).jpg", "pin (64).jpg", "pin (65).jpg", "pin (66).jpg", "pin (67).jpg", "pin (68).jpg", "pin (69).jpg", "pin (7).jpg", "pin (8).jpg", "pin (9).jpg", "scrap (1).jpeg", "scrap (1).jpg", "scrap (1).png", "scrap (1).webp", "scrap (10).jpg", "scrap (10).png", "scrap (11).jpg", "scrap (12).jpg", "scrap (13).jpg", "scrap (14).jpg", "scrap (15).jpg", "scrap (16).jpg", "scrap (17).jpg", "scrap (18).jpg", "scrap (19).jpg", "scrap (2).jpg", "scrap (2).png", "scrap (20).jpg", "scrap (21).jpg", "scrap (22).jpg", "scrap (23).jpg", "scrap (24).jpg", "scrap (25).jpg", "scrap (26).jpg", "scrap (27).jpg", "scrap (28).jpg", "scrap (29).jpg", "scrap (3).jpg", "scrap (3).png", "scrap (30).jpg", "scrap (31).jpg", "scrap (32).jpg", "scrap (33).jpg", "scrap (34).jpg", "scrap (35).jpg", "scrap (36).jpg", "scrap (37).jpg", "scrap (38).jpg", "scrap (39).jpg", "scrap (4).jpg", "scrap (4).png", "scrap (40).jpg", "scrap (41).jpg", "scrap (42).jpg", "scrap (43).jpg", "scrap (44).jpg", "scrap (45).jpg", "scrap (46).jpg", "scrap (47).jpg", "scrap (48).jpg", "scrap (49).jpg", "scrap (5).jpg", "scrap (5).png", "scrap (50).jpg", "scrap (51).jpg", "scrap (52).jpg", "scrap (53).jpg", "scrap (54).jpg", "scrap (55).jpg", "scrap (56).jpg", "scrap (57).jpg", "scrap (58).jpg", "scrap (59).jpg", "scrap (6).jpg", "scrap (6).png", "scrap (60).jpg", "scrap (61).jpg", "scrap (62).jpg", "scrap (63).jpg", "scrap (64).jpg", "scrap (65).jpg", "scrap (66).jpg", "scrap (67).jpg", "scrap (68).jpg", "scrap (69).jpg", "scrap (7).jpg", "scrap (7).png", "scrap (70).jpg", "scrap (71).jpg", "scrap (72).jpg", "scrap (73).jpg", "scrap (74).jpg", "scrap (75).jpg", "scrap (76).jpg", "scrap (77).jpg", "scrap (78).jpg", "scrap (79).jpg", "scrap (8).jpg", "scrap (8).png", "scrap (80).jpg", "scrap (81).jpg", "scrap (82).jpg", "scrap (83).jpg", "scrap (84).jpg", "scrap (85).jpg", "scrap (86).jpg", "scrap (87).jpg", "scrap (88).jpg", "scrap (89).jpg", "scrap (9).jpg", "scrap (9).png", "scrap (90).jpg", "scrap (91).jpg", "thong (1).jpg", "thong (1).png", "thong (1).webp", "thong (10).webp", "thong (11).webp", "thong (12).webp", "thong (13).webp", "thong (14).webp", "thong (15).webp", "thong (16).webp", "thong (17).webp", "thong (18).webp", "thong (19).webp", "thong (2).png", "thong (2).webp", "thong (20).webp", "thong (21).webp", "thong (22).webp", "thong (23).webp", "thong (24).webp", "thong (25).webp", "thong (26).webp", "thong (27).webp", "thong (28).webp", "thong (29).webp", "thong (3).webp", "thong (30).webp", "thong (31).webp", "thong (32).webp", "thong (33).webp", "thong (34).webp", "thong (35).webp", "thong (36).webp", "thong (37).webp", "thong (38).webp", "thong (39).webp", "thong (4).webp", "thong (40).webp", "thong (41).webp", "thong (42).webp", "thong (43).webp", "thong (44).webp", "thong (45).webp", "thong (46).webp", "thong (47).webp", "thong (48).webp", "thong (49).webp", "thong (5).webp", "thong (50).webp", "thong (51).webp", "thong (52).webp", "thong (53).webp", "thong (6).webp", "thong (7).webp", "thong (8).webp", "thong (9).webp", "thong.png", "thong.webp"
+];
+
+const SECTIONS = [
+    { key: 'hunkemoller', label: 'HUNKEMOLLER' },
+    { key: 'activewear',  label: 'ACTIVEWEAR' },
+    { key: 'bodysuit',    label: 'BODYSUIT' },
+    { key: 'lingerie',    label: 'LUXURY / LINGERIE' },
+    { key: 'twoset',      label: '2-PIECE SET' },
+    { key: 'panty',       label: 'PANTY / THONG' },
+    { key: 'essential',   label: 'ESSENTIAL' },
+    { key: 'social',      label: 'SOCIAL / PIN' },
+    { key: 'scrap',       label: 'ARCHIVE / SCRAP' }
+];
+
+let photos = rawFiles.map((filename, i) => {
+    const lower = filename.toLowerCase();
+    let kind = 'scrap';
+
+    if (lower.includes('hunkemoller')) kind = 'hunkemoller';
+    else if (lower.includes('2set') || lower.includes('2-piece')) kind = 'twoset';
+    else if (lower.includes('activewear')) kind = 'activewear';
+    else if (lower.includes('bodysuit')) kind = 'bodysuit';
+    else if (lower.includes('lingerie') || lower.includes('luxury')) kind = 'lingerie';
+    else if (lower.includes('panty') || lower.includes('thong')) kind = 'panty';
+    else if (lower.includes('ig') || lower.includes('pin')) kind = 'social';
+    else if (lower.includes('essential')) kind = 'essential';
+
+    return { 
+        id: i, 
+        title: filename.replace(/\.[^/.]+$/, ""), // এক্সটেনশন রিমুভ করে সুন্দর নাম দেখাবে
+        kind: kind, 
+        file: filename,
+        src: BASE + encodeURIComponent(filename), 
+        score: Math.round(Math.random() * 100),
+        video: /\.(mp4|webm|mov)$/i.test(filename) 
+    };
+});
+
+/* 3. ENGINE STATE */
+let state = { mode: 'all', view: 'grid', tag: null, query: '' };
+let activeSet = photos;
+let lbIndex = 0;
+let zoomed = false;
+
+function getFiltered() {
+    let data = [...photos];
+    if (state.mode === 'pop') data.sort((a, b) => b.score - a.score);
+    if (state.mode === 'az') data.sort((a, b) => a.title.localeCompare(b.title));
+    if (state.tag) data = data.filter(p => p.kind === state.tag);
+    if (state.query) { 
+        const q = state.query.toLowerCase(); 
+        data = data.filter(p => p.title.toLowerCase().includes(q) || p.file.toLowerCase().includes(q)); 
+    }
+    return data;
+}
+
+/* 4. RENDERERS */
+function renderToolbar() {
+    const tb = document.getElementById('toolbar');
+    tb.innerHTML = `
+        <button class="btn ${state.mode === 'all' ? 'active' : ''}" onclick="setMode('all')">${icon('all')} ALL</button>
+        <button class="btn ${state.mode === 'pop' ? 'active' : ''}" onclick="setMode('pop')">${icon('popular')} TOP</button>
+        <button class="btn ${state.mode === 'az' ? 'active' : ''}" onclick="setMode('az')">${icon('az')} A-Z</button>
+        
+        <button class="btn view-btn ${state.view === 'grid' ? 'active' : ''}" onclick="setView('grid')">${icon('grid')}</button>
+        <button class="btn view-btn ${state.view === 'masonry' ? 'active' : ''}" onclick="setView('masonry')">${icon('masonry')}</button>
+        <button class="btn view-btn ${state.view === 'list' ? 'active' : ''}" onclick="setView('list')">${icon('list')}</button>
+        
+        <div class="search-wrap">${icon('search')}<input id="search" placeholder="SEARCH ASSETS" oninput="onSearch(this.value)"></div>
+    `;
+    document.getElementById('search').value = state.query;
+}
+
+function renderTagbar() {
+    const bar = document.getElementById('tagbar');
+    bar.innerHTML = '';
+    
+    const allChip = document.createElement('div');
+    allChip.className = 'tag-chip' + (state.tag === null ? ' active' : '');
+    allChip.innerHTML = `INDEXED DB <span class="tag-count">[${photos.length}]</span>`;
+    allChip.onclick = () => { state.tag = null; render(); };
+    bar.appendChild(allChip);
+
+    SECTIONS.forEach(sec => {
+        const count = photos.filter(p => p.kind === sec.key).length;
+        if (count > 0) {
+            const chip = document.createElement('div');
+            chip.className = 'tag-chip' + (state.tag === sec.key ? ' active' : '');
+            chip.innerHTML = `${sec.label} <span class="tag-count">[${count}]</span>`;
+            chip.onclick = () => { state.tag = (state.tag === sec.key ? null : sec.key); render(); };
+            bar.appendChild(chip);
+        }
+    });
+}
+
+/* 4. RENDERERS */
+function renderToolbar() {
+    const tb = document.getElementById('toolbar');
+    tb.innerHTML = `
+        <button class="btn ${state.mode === 'all' ? 'active' : ''}" onclick="setMode('all')">${icon('all')} ALL</button>
+        <button class="btn ${state.mode === 'pop' ? 'active' : ''}" onclick="setMode('pop')">${icon('popular')} TOP</button>
+        <button class="btn ${state.mode === 'az' ? 'active' : ''}" onclick="setMode('az')">${icon('az')} A-Z</button>
+        
+        <button class="btn view-btn ${state.view === 'grid' ? 'active' : ''}" onclick="setView('grid')">${icon('grid')}</button>
+        <button class="btn view-btn ${state.view === 'masonry' ? 'active' : ''}" onclick="setView('masonry')">${icon('masonry')}</button>
+        <button class="btn view-btn ${state.view === 'list' ? 'active' : ''}" onclick="setView('list')">${icon('list')}</button>
+        
+        <div class="search-wrap">${icon('search')}<input id="search" placeholder="SEARCH ASSETS" oninput="onSearch(this.value)"></div>
+    `;
+    document.getElementById('search').value = state.query;
+}
+
+function renderTagbar() {
+    const bar = document.getElementById('tagbar');
+    bar.innerHTML = '';
+    
+    const allChip = document.createElement('div');
+    allChip.className = 'tag-chip' + (state.tag === null ? ' active' : '');
+    allChip.innerHTML = `INDEXED DB <span class="tag-count">[${photos.length}]</span>`;
+    allChip.onclick = () => { state.tag = null; render(); };
+    bar.appendChild(allChip);
+
+    SECTIONS.forEach(sec => {
+        const count = photos.filter(p => p.kind === sec.key).length;
+        if (count > 0) {
+            const chip = document.createElement('div');
+            chip.className = 'tag-chip' + (state.tag === sec.key ? ' active' : '');
+            chip.innerHTML = `${sec.label} <span class="tag-count">[${count}]</span>`;
+            chip.onclick = () => { state.tag = (state.tag === sec.key ? null : sec.key); render(); };
+            bar.appendChild(chip);
+        }
+    });
+}
+
+function render() {
+    renderToolbar();
+    renderTagbar();
+    const grid = document.getElementById('grid');
+    grid.className = 'gallery ' + state.view;
+    grid.innerHTML = '';
+
+    activeSet = getFiltered();
+
+    if (!activeSet.length) {
+        grid.innerHTML = `<div class="empty-state">${icon('search')}<span>NO PROTOCOLS MATCH</span></div>`;
+    } else {
+        activeSet.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerHTML = `
+                <div class="media-wrap" onclick="openLb(${p.id})">
+                    <img src="${p.src}" loading="lazy" onload="this.classList.add('loaded')" onerror="this.style.display='none';">
+                </div>
+                <div class="card-meta"><span>${p.title}</span> <span>[+]</span></div>
+            `;
+            grid.appendChild(div);
+        });
+    }
+    document.getElementById('counter-badge').textContent = `VISIBLE PROTOCOLS: ${activeSet.length} // ${photos.length}`;
+}
+
+function setMode(mode) { state.mode = mode; render(); }
+function setView(view) { state.view = view; render(); }
+function onSearch(val) { state.query = val.trim(); render(); }
+
+/* 5. MAXIMUM LIGHTBOX & FILMSTRIP LOGIC */
+function initLbIcons() {
+    document.getElementById('lb-fullscreen').innerHTML = icon('fullscreen');
+    document.getElementById('lb-download').innerHTML = icon('download');
+    document.querySelector('.lb-close').innerHTML = icon('close');
+    document.querySelector('.lb-nav.prev').innerHTML = icon('prev');
+    document.querySelector('.lb-nav.next').innerHTML = icon('next');
+}
+
+function openLb(id) {
+    lbIndex = activeSet.findIndex(p => p.id === id);
+    zoomed = false;
+    document.getElementById('lightbox').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    showLbFrame();
+}
+
+function showLbFrame() {
+    const p = activeSet[lbIndex];
+    const holder = document.getElementById('lb-media-holder');
+    
+    holder.innerHTML = `<img src="${p.src}" onclick="this.classList.toggle('zoomed')">`;
+    document.getElementById('lb-title').textContent = `ASSET // ${p.title.toUpperCase()}`;
+    
+    // Dynamic Metadata Prompt based on category
+    let techPrompt = "8K resolution, Hasselblad quality, 85mm lens simulation, brutalist industrial realism";
+    if(p.kind === 'hunkemoller') techPrompt = "Commercial fashion photography, Hunkemoller catalog spec, hyper-detailed fabric textures, studio lighting";
+    else if(p.kind === 'activewear') techPrompt = "High contrast athletic wear presentation, dynamic lighting, utilitarian aesthetic, RAWx technical blueprint";
+    
+    document.getElementById('lb-prompt-text').textContent = techPrompt;
+    
+    const dlBtn = document.getElementById('lb-download');
+    dlBtn.href = p.src;
+    dlBtn.setAttribute('download', p.title);
+    
+    renderFilmstrip();
+}
+
+function renderFilmstrip() {
+    const strip = document.getElementById('filmstrip');
+    strip.innerHTML = '';
+    activeSet.forEach((p, i) => {
+        const el = document.createElement('img');
+        el.className = 'fs-thumb' + (i === lbIndex ? ' active' : '');
+        el.src = p.src;
+        el.onclick = () => { lbIndex = i; zoomed = false; showLbFrame(); };
+        strip.appendChild(el);
+    });
+    const activeThumb = strip.querySelector('.active');
+    if (activeThumb) activeThumb.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+}
+
+function navLb(dir) { 
+    lbIndex = (lbIndex + dir + activeSet.length) % activeSet.length; 
+    zoomed = false; 
+    showLbFrame(); 
+}
+
+function closeLb() {
+    document.getElementById('lightbox').style.display = 'none';
+    document.getElementById('lb-media-holder').innerHTML = '';
+    document.body.style.overflow = '';
+    if (document.fullscreenElement) document.exitFullscreen();
+}
+
+function toggleFullscreen() {
+    const lb = document.getElementById('lightbox');
+    if (!document.fullscreenElement) lb.requestFullscreen?.();
+    else document.exitFullscreen?.();
+}
+
+/* KEYBOARD NAVIGATION */
+document.addEventListener('keydown', e => {
+    if (document.getElementById('lightbox').style.display !== 'flex') return;
+    if (e.key === 'Escape') closeLb();
+    if (e.key === 'ArrowRight') navLb(1);
+    if (e.key === 'ArrowLeft') navLb(-1);
+    if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+});
+
+/* SWIPE LOGIC FOR MOBILE */
+let touchStartX = 0;
+document.getElementById('lb-stage').addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+document.getElementById('lb-stage').addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) navLb(dx > 0 ? -1 : 1);
+});
+
+initLbIcons();
+render();
+</script>
+</body>
+</html>
