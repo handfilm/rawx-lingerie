@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAWx_ARCHIVE_OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style-shared.css">
+<link rel="stylesheet" href="style-about.css">
+</head>
+<body>
+
+<!-- ================= SHARED CROSS-PAGE NAV STRIP ================= -->
+<nav class="rawx-nav-strip">
+  <a href="index.html">D2C Storefront →</a>
+  <a href="index-b2b.html">Wholesale Terminal →</a>
+  <a href="index-about.html" class="active"><span class="dot"></span>Archive / About</a>
+</nav>
+
+<header class="site-header">
+  <a class="brand brand-link" href="index.html" title="Return to Consumer Site">
+    <div class="site-title">RAWx_<span>ARCHIVE</span></div>
+    <div class="brand-sub">OS // B2B procurement terminal v3 <em>— return to D2C ↗</em></div>
+  </a>
+  <div class="header-stats">
+    <div class="hstat accent"><b id="stat-total"></b><span>Total Frames</span></div>
+    <div class="hstat"><b id="stat-visible"></b><span>Visible</span></div>
+    <div class="hstat"><b id="stat-cats"></b><span>Categories</span></div>
+    <div class="hstat"><b id="stat-fav"></b><span>Favorites</span></div>
+  </div>
+</header>
+
+<section class="hero-b2b">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">RAWx Lingerie // B2B Protocol</div>
+    <h1 class="hero-headline">Bangladesh to Global —<br><em>Wholesale Procurement Terminal</em></h1>
+    <p class="hero-body">Factory-direct intimatewear and technical bodywear, sourced and produced in Dhaka. Every frame below is a live production reference — spec it, request a quote, or pull the tech-pack directly. No middlemen, no minimums hidden in a PDF.</p>
+    <div class="hero-coords">
+      <div class="hero-coord">Origin<b>Dhaka, BD</b></div>
+      <div class="hero-coord">Lead Time<b>25–35 Days</b></div>
+      <div class="hero-coord">Incoterms<b>FOB / EXW</b></div>
+      <div class="hero-coord">Protocol<b id="hero-frame-count">— Frames</b></div>
+    </div>
+  </div>
+</section>
+
+<div class="toolbar" id="toolbar"></div>
+<div class="tagbar" id="tagbar"></div>
+<div class="dash" id="dash"></div>
+<div class="gallery" id="grid"></div>
+
+<!-- Lightbox -->
+<div id="lightbox">
+  <div class="lb-top">
+    <div class="lb-title-wrap"><span class="cat-icon" id="lb-cat-icon"></span><span id="lb-title">FRAME</span></div>
+    <div class="lb-actions">
+      <button class="lb-btn" id="lb-fav" onclick="toggleFavInLb()" title="Favorite"></button>
+      <button class="lb-btn" id="lb-copy" onclick="copyLbPath()" title="Copy filename"></button>
+      <button class="lb-btn lb-btn-text" id="lb-speed" onclick="cycleSpeed()" title="Slideshow speed"></button>
+      <button class="lb-btn" id="lb-play" onclick="toggleSlideshow()" title="Slideshow"></button>
+      <button class="lb-btn" id="lb-fullscreen" onclick="toggleFullscreen()" title="Fullscreen"></button>
+      <a class="lb-btn" id="lb-download" download title="Download"></a>
+      <button class="lb-btn lb-close" onclick="closeLb()" title="Close"></button>
+    </div>
+  </div>
+  <div class="lb-stage" id="lb-stage">
+    <div class="lb-progress" id="lb-progress"></div>
+    <button class="lb-nav prev" onclick="navLb(-1)" title="Previous"></button>
+    <div id="lb-media-holder" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"></div>
+    <button class="lb-nav next" onclick="navLb(1)" title="Next"></button>
+  </div>
+  <div class="lb-bottom" id="lb-counter"></div>
+  <div class="filmstrip" id="filmstrip"></div>
+</div>
+
+<!-- Inquiry Modal -->
+<div id="inquiry-modal">
+  <div class="inq-panel">
+    <div class="inq-top">
+      <div>
+        <div class="inq-top-title">Request Quote // Spec Sheet</div>
+        <div class="inq-top-name" id="inq-name"></div>
+      </div>
+      <button class="inq-close" onclick="closeInquiry()" title="Close"></button>
+    </div>
+    <div class="inq-body">
+      <div class="inq-media" id="inq-media"></div>
+      <div class="inq-specs">
+        <p class="inq-desc" id="inq-desc"></p>
+        <div class="inq-spec-grid">
+          <div class="inq-spec-cell"><span>Material Specs</span><b id="inq-material"></b></div>
+          <div class="inq-spec-cell"><span>MOQ (Per Style)</span><b id="inq-moq"></b></div>
+          <div class="inq-spec-cell"><span>Available Sizes</span><b id="inq-sizes"></b></div>
+          <div class="inq-spec-cell"><span>Frame Ref</span><b id="inq-ref"></b></div>
+        </div>
+        <div class="inq-spec-grid" id="inq-extra-grid" style="display:none;">
+          <div class="inq-spec-cell"><span>Price</span><b id="inq-price"></b></div>
+          <div class="inq-spec-cell"><span>Colorways</span><b id="inq-colorways"></b></div>
+        </div>
+      </div>
+    </div>
+    <form class="inq-form" id="inq-form" onsubmit="submitInquiry(event)">
+      <div class="inq-form-title">Buyer Contact</div>
+      <div class="inq-row">
+        <div class="inq-field"><label>Company</label><input type="text" id="inq-company" required></div>
+        <div class="inq-field"><label>Email</label><input type="email" id="inq-email" required></div>
+      </div>
+      <div class="inq-row">
+        <div class="inq-field"><label>Country</label><input type="text" id="inq-country" required></div>
+        <div class="inq-field"><label>Target Quantity</label><input type="text" id="inq-qty" placeholder="e.g. 500 units"></div>
+      </div>
+      <div class="inq-field"><label>Notes</label><textarea id="inq-notes" placeholder="Colorways, customization, delivery window..."></textarea></div>
+      <button type="submit" class="inq-submit" id="inq-submit-btn"><span>Send Inquiry</span></button>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="core-assets.js"></script>
+<script src="app-about.js"></script>
+<script src="page-transition.js"></script>
+</body>
+</html>

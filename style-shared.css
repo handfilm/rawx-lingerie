@@ -1,0 +1,45 @@
+/* ============================================================
+   RAWx SHARED — cross-page navigation strip
+   Loaded on every page (index.html, index-about.html, index-b2b.html)
+   BEFORE the page-specific stylesheet. Colors are hardcoded rather
+   than tied to each page's --var tokens, since style-main.css,
+   style-about.css and style-b2b.css currently define three
+   different accent systems (--amber / --green / --yellow). This
+   keeps the strip visually identical no matter which page it's on.
+   ============================================================ */
+.rawx-nav-strip{
+  position:fixed; top:0; left:0; width:100%; z-index:600;
+  display:flex; align-items:center; justify-content:center;
+  gap:0;
+  background:#0a0a0a;
+  border-bottom:1px solid rgba(242,242,242,0.14);
+  font-family:'JetBrains Mono','Courier New',monospace;
+  font-size:11px; letter-spacing:0.12em; text-transform:uppercase;
+}
+.rawx-nav-strip a{
+  display:flex; align-items:center; gap:6px;
+  padding:9px 20px;
+  color:#a8a8a3;
+  text-decoration:none;
+  border-right:1px solid rgba(242,242,242,0.1);
+  transition:background .15s ease, color .15s ease;
+  white-space:nowrap;
+}
+.rawx-nav-strip a:last-child{ border-right:none; }
+.rawx-nav-strip a:hover{ background:rgba(242,242,242,0.08); color:#f2f2f2; }
+.rawx-nav-strip a.active{ color:#ffb020; }
+.rawx-nav-strip a .dot{
+  width:5px; height:5px; border-radius:50%; background:#ff2e2e;
+}
+
+/* Each page has its own fixed header (header / .site-header) sitting
+   at top:0. Push it down below the strip so the two stack instead
+   of overlapping; add matching body padding for non-fixed layouts. */
+:root{ --rawx-strip-h: 34px; }
+body{ padding-top:var(--rawx-strip-h); }
+header, .site-header{ top:var(--rawx-strip-h) !important; }
+
+@media (max-width:700px){
+  .rawx-nav-strip{ font-size:9px; }
+  .rawx-nav-strip a{ padding:8px 10px; gap:4px; }
+}

@@ -3,1019 +3,375 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RAWx_ARCHIVE_OS // B2B ENGINE</title>
+<title>RAWx — Second-Skin Architecture</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
-<style>
-:root{
-  --void:#0a0a0a; --void2:#131313; --panel:#1a1a1a; --line:#2a2a2a;
-  --white:#f2f2f2; --dim:#8a8a8a; --dim2:#5c5c5c;
-  --yellow:#ffe000; --red:#ff2e2e; --amber:#ffb020;
-  --mono:'JetBrains Mono','Courier New',monospace;
-  --dur:.18s;
-  /* motion system */
-  --spring: cubic-bezier(.34,1.56,.64,1);
-  --spring-soft: cubic-bezier(.22,1.12,.36,1);
-  --out: cubic-bezier(.16,1,.3,1);
-  --snap: cubic-bezier(.7,0,.3,1);
-  --stagger-step: 16ms;
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html{scroll-behavior:smooth;}
-body{background:var(--void);color:var(--white);font-family:var(--mono);margin:0;cursor:crosshair;}
-button,input{font-family:var(--mono);cursor:crosshair;}
-
-/* ============ REDUCED MOTION ============ */
-@media (prefers-reduced-motion: reduce){
-  *, *::before, *::after{
-    animation-duration:.001ms !important;
-    animation-iteration-count:1 !important;
-    transition-duration:.001ms !important;
-    scroll-behavior:auto !important;
-  }
-  .card{ opacity:1 !important; }
-}
-svg.icon{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block;}
-::selection{background:var(--yellow);color:var(--void);}
-::-webkit-scrollbar{height:8px;width:8px;}
-::-webkit-scrollbar-track{background:var(--void2);}
-::-webkit-scrollbar-thumb{background:var(--line);}
-::-webkit-scrollbar-thumb:hover{background:var(--yellow);}
-
-/* ============ BRUTALIST HEADER ============ */
-.site-header{background:var(--void);border-bottom:1px solid var(--line);padding:24px 22px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;position:relative;}
-.site-header::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--yellow),transparent 40%,var(--red) 70%,transparent);}
-.brand{display:flex;flex-direction:column;gap:4px;}
-.site-title{font-size:2.8rem;font-weight:800;text-transform:uppercase;letter-spacing:-2px;line-height:.85;}
-.site-title span{color:var(--yellow);}
-.brand-sub{font-size:10px;letter-spacing:3px;color:var(--yellow);text-transform:uppercase;}
-.header-stats{display:flex;gap:22px;flex-wrap:wrap;}
-.hstat{display:flex;flex-direction:column;gap:2px;min-width:64px;}
-.hstat b{font-size:1.3rem;font-weight:800;color:var(--white);line-height:1;}
-.hstat span{font-size:9px;letter-spacing:1.5px;color:var(--dim2);text-transform:uppercase;}
-.hstat.accent b{color:var(--yellow);}
-
-/* ============ TOOLBAR ============ */
-.toolbar{position:sticky;top:0;background:var(--void2);border-bottom:1px solid var(--line);display:flex;z-index:100;overflow-x:auto;align-items:stretch;backdrop-filter:blur(6px);}
-
-/* Brutalist button base: sharp edges, GPU-accelerated, magnetic-ready */
-.btn, .tag-chip, .board-chip, .lb-btn, .b2b-btn{
-  transform:translateZ(0);
-  transition:background var(--dur) var(--out), color var(--dur) var(--out), border-color var(--dur) var(--out), transform .22s var(--spring), box-shadow .22s var(--out);
-  position:relative;
-}
-.btn{padding:12px 16px;border:none;border-right:1px solid var(--line);background:transparent;color:var(--dim);display:flex;align-items:center;gap:7px;font-size:10px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;}
-.btn:hover{background:var(--panel);color:var(--white);}
-.btn.active{background:var(--yellow);color:var(--void);font-weight:700;box-shadow:inset 0 0 0 1px #000;}
-.btn.view-btn.active{background:var(--red);color:var(--white);}
-.btn.fav-btn.active{background:var(--yellow);color:var(--void);}
-.btn:active, .tag-chip:active, .board-chip:active, .lb-btn:active, .b2b-btn:active{
-  transform:translateZ(0) scale(.94);
-  transition-duration:.08s;
-}
-/* One-shot glitch pulse on hover-in */
-@keyframes glitchPulse{
-  0%{ clip-path:inset(0 0 0 0); }
-  18%{ clip-path:inset(8% 0 62% 0); transform:translate3d(-2px,0,0); }
-  36%{ clip-path:inset(58% 0 6% 0); transform:translate3d(2px,0,0); }
-  54%{ clip-path:inset(28% 0 42% 0); transform:translate3d(-1px,0,0); }
-  72%{ clip-path:inset(4% 0 72% 0); transform:translate3d(1px,0,0); }
-  100%{ clip-path:inset(0 0 0 0); transform:translate3d(0,0,0); }
-}
-.btn:hover, .tag-chip:hover, .board-chip:hover, .lb-btn:hover, .b2b-btn:hover{
-  animation:glitchPulse .26s steps(5);
-}
-.search-wrap{display:flex;align-items:center;gap:8px;border-right:1px solid var(--line);padding:0 14px;color:var(--dim2);}
-.search-wrap input{border:none;background:none;outline:none;font-size:12px;width:150px;color:var(--white);font-weight:bold;transition:width .2s var(--out);}
-.search-wrap input::placeholder{color:var(--dim2);font-weight:normal;}
-.search-wrap input:focus{width:190px;}
-#status{margin-left:auto;padding:12px 16px;font-size:9px;align-self:center;text-transform:uppercase;white-space:nowrap;color:var(--dim2);letter-spacing:1px;}
-
-/* ============ TAGBAR & BOARDBAR ============ */
-.tagbar{display:flex;background:var(--void);overflow-x:auto;border-bottom:1px solid var(--line);}
-.tag-chip{padding:12px 16px;border-right:1px solid var(--line);background:var(--void);color:var(--dim);display:flex;align-items:center;gap:7px;white-space:nowrap;font-size:10px;letter-spacing:1px;text-transform:uppercase;}
-.tag-chip:hover{color:var(--white);background:var(--void2);}
-.tag-chip.active{background:var(--yellow);color:var(--void);font-weight:700;box-shadow:inset 0 0 0 1px #000;}
-.tag-count{opacity:.6;font-size:9px;}
-.tag-chip.active .tag-count{opacity:.9; color: var(--void);}
-
-.boardbar{display:flex;background:var(--void);overflow-x:auto;border-bottom:1px solid var(--line);}
-.boardbar:empty{display:none;}
-.board-chip{padding:9px 8px 9px 14px;border-right:1px solid var(--line);background:var(--void);color:var(--dim);display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:10px;letter-spacing:.5px;text-transform:uppercase;}
-.board-chip:hover{color:var(--white);background:var(--void2);}
-.board-chip.active{background:var(--red);color:var(--white);font-weight:700;box-shadow:inset 0 0 0 1px #000;}
-.board-chip-label{cursor:pointer;display:flex;align-items:center;gap:7px;}
-.board-chip-del{opacity:.5;padding:4px;display:flex;transition:transform .18s var(--spring),color .15s;}
-.board-chip-del:hover{opacity:1;color:var(--red);transform:scale(1.15) rotate(-4deg);}
-
-/* ============ GALLERY ============ */
-.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:2px;background:var(--line);border-top:1px solid var(--line);min-height:50vh;}
-.gallery.masonry{display:block;columns:280px;column-gap:2px;}
-.gallery.masonry .card{break-inside:avoid;margin-bottom:2px;aspect-ratio:auto;}
-.gallery.list{display:block;}
-.gallery.list .card{aspect-ratio:auto;display:flex;align-items:center;border-bottom:1px solid var(--line);}
-.gallery.list .card .media-wrap{width:140px;height:100px;flex-shrink:0;}
-.gallery.list .card-meta{position:static;opacity:1;background:none;padding:10px 14px;color:var(--white);transform:none;flex:1;}
-
-.card{
-  position:relative;background:var(--void2);overflow:hidden;aspect-ratio:1;
-  transform:translateZ(0);
-  will-change:transform;
-  content-visibility:auto;
-  contain-intrinsic-size:280px 280px;
-  contain:layout paint style;
-  opacity:0;
-  animation:cardReveal .5s var(--out) both;
-  animation-delay:calc(var(--i,0) * var(--stagger-step));
-}
-@keyframes cardReveal{
-  0%{ opacity:0; transform:translate3d(0,10px,0) scale(.97); clip-path:inset(0 0 30% 0); filter:blur(3px); }
-  55%{ opacity:1; clip-path:inset(0 0 0 0); filter:blur(0); }
-  100%{ opacity:1; transform:translate3d(0,0,0) scale(1); }
-}
-.media-wrap{position:relative;width:100%;height:100%;background:linear-gradient(110deg,#161616 30%,#1e1e1e 50%,#161616 70%);background-size:200% 100%;animation:shimmer 1.4s infinite;transform:translateZ(0);}
-.media-wrap.loaded{animation:none;background:none;}
-@keyframes shimmer{to{background-position-x:-200%;}}
-.card img,.card video{width:100%;height:100%;object-fit:cover;filter:grayscale(35%) contrast(1.1);transition:transform .4s var(--out),filter .4s var(--out);display:block;cursor:zoom-in;opacity:0;will-change:transform,filter;transform:translateZ(0) scale(1);backface-visibility:hidden;}
-.card img.loaded,.card video.loaded{opacity:1;}
-.card:hover img,.card:hover video{transform:translateZ(0) scale(1.05);filter:grayscale(0%) contrast(1.2);}
-.gallery.list .card:hover img{transform:translateZ(0) scale(1);}
-.card-meta{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.95)); border-top: 1px solid var(--yellow); color:var(--white);padding:24px 10px 10px;font-size:9px;text-transform:uppercase;letter-spacing:1px;opacity:0;transform:translate3d(0,4px,0);transition:opacity .2s var(--out),transform .25s var(--out);pointer-events:none;display:flex;justify-content:space-between;align-items:flex-end;}
-.card:hover .card-meta{opacity:1;transform:translate3d(0,0,0);}
-.cat-icon{color:var(--yellow);opacity:.9;flex-shrink:0;}
-
-/* Card Badges (Fav/Pin) */
-.fav-toggle, .pin-toggle { position:absolute; z-index:3; background:rgba(0,0,0,.6); border:1px solid rgba(255,255,255,.2); color:var(--white); width:28px; height:28px; display:flex; align-items:center; justify-content:center; transition:background .18s var(--out),color .18s var(--out),border-color .18s var(--out),transform .28s var(--spring); pointer-events:auto; transform:translateZ(0); }
-.fav-toggle { top:8px; left:8px; }
-.pin-toggle { top:8px; right:8px; }
-.fav-toggle:hover { border-color:var(--yellow); color:var(--yellow); transform:translateZ(0) scale(1.12); }
-.fav-toggle.active { background:var(--yellow); color:var(--void); border-color:var(--yellow); }
-.pin-toggle:hover { border-color:var(--red); color:var(--red); transform:translateZ(0) scale(1.12); }
-.pin-toggle.active { background:var(--red); color:var(--white); border-color:var(--red); }
-.fav-toggle.pop, .pin-toggle.pop{ animation:togglePop .38s var(--spring); }
-@keyframes togglePop{
-  0%{ transform:translateZ(0) scale(1); }
-  40%{ transform:translateZ(0) scale(1.35) rotate(-8deg); }
-  100%{ transform:translateZ(0) scale(1); }
-}
-
-/* infinite-scroll sentinel */
-#sentinel{grid-column:1/-1;height:1px;}
-.empty-state{color:var(--dim2);text-transform:uppercase;font-size:12px;padding:70px 20px;text-align:center;grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:12px;}
-
-/* ============ ULTIMATE LIGHTBOX ============ */
-#lightbox{
-  display:none;position:fixed;inset:0;background:rgba(5,5,5,.98);z-index:1000;flex-direction:column;
-  opacity:0;transform:translateZ(0) scale(.94);will-change:opacity,transform;
-  transition:opacity .26s var(--out), transform .34s var(--spring);
-  pointer-events:none;
-}
-#lightbox.open{opacity:1;transform:translateZ(0) scale(1);pointer-events:auto;}
-.lb-top{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;color:var(--yellow);font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:2px;border-bottom:1px solid var(--line); background:#000;}
-.lb-actions{display:flex;gap:8px;}
-.lb-btn{background:none;border:1px solid var(--line);color:var(--white);padding:8px;display:flex;align-items:center;justify-content:center;}
-.lb-btn:hover{background:var(--yellow);color:var(--void);border-color:var(--yellow);}
-.lb-btn.active{background:var(--yellow);color:var(--void);border-color:var(--yellow);}
-.lb-btn-text{font-size:10px;font-weight:700;letter-spacing:.5px;padding:8px 10px;min-width:34px;}
-.lb-close:hover{background:var(--red);border-color:var(--red);color:var(--white);}
-
-.lb-stage{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;padding:0 70px;transform:translateZ(0);}
-.lb-stage img, .lb-stage video{max-width:100%;max-height:72vh;outline:2px solid #222;cursor:zoom-in;transition:transform .3s var(--out);transform:translateZ(0);will-change:transform;animation:lbMediaIn .35s var(--spring) both;}
-.lb-stage img.zoomed{max-width:none;max-height:none;height:130vh;cursor:zoom-out;}
-@keyframes lbMediaIn{
-  0%{ opacity:0; transform:translateZ(0) scale(.9); }
-  100%{ opacity:1; transform:translateZ(0) scale(1); }
-}
-.lb-nav{position:absolute;top:0;bottom:0;width:70px;background:none;border:none;color:var(--white);display:flex;align-items:center;justify-content:center;opacity:.4;transition:opacity .18s var(--out),background .18s var(--out);}
-.lb-nav svg{width:32px;height:32px;transition:transform .22s var(--spring);}
-.lb-nav:hover{opacity:1;background:rgba(255,255,255,.05);}
-.lb-nav.prev:hover svg{transform:translateX(-4px);}
-.lb-nav.next:hover svg{transform:translateX(4px);}
-.lb-nav.prev{left:0;} .lb-nav.next{right:0;}
-.lb-progress{position:absolute;top:0;left:0;height:3px;background:var(--yellow);width:0%;z-index:5;transition:none;transform:translateZ(0);}
-.lb-progress.running{transition:width linear;}
-
-/* TECH SPECS & B2B PANEL IN LIGHTBOX */
-.lb-metadata-panel { background: #0a0a0a; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #111;}
-.meta-prompt { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; line-height: 1.4; max-width: 70%;}
-.meta-prompt strong { color: var(--yellow); }
-.b2b-btn { background: var(--yellow); color: var(--void); border: none; padding: 12px 20px; font-weight: 800; font-family: var(--mono); text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: 0.2s; display: flex; align-items:center; gap: 8px;}
-.b2b-btn:hover { background: var(--white); }
-
-.filmstrip{display:flex;gap:4px;overflow-x:auto;padding:12px 20px 20px; background: #000;}
-.fs-thumb{width:60px;height:60px;object-fit:cover;opacity:.3;filter:grayscale(80%);flex-shrink:0;border:2px solid transparent; cursor:pointer;transition:opacity .18s var(--out),filter .18s var(--out),transform .22s var(--spring),border-color .18s;transform:translateZ(0);}
-.fs-thumb:hover{opacity:.8;transform:translateZ(0) translateY(-3px);}
-.fs-thumb.active{opacity:1;filter:grayscale(0%);border-color:var(--yellow);transform:translateZ(0) scale(1.06);}
-
-/* Modals & Toasts */
-.modal-overlay{display:flex;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:2000;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s var(--out);}
-.modal-overlay.open{opacity:1;pointer-events:auto;}
-.modal-box{background:var(--void2);border:1px solid var(--line);width:100%;max-width:360px;max-height:80vh;display:flex;flex-direction:column;transform:translateZ(0) scale(.92) translateY(8px);transition:transform .3s var(--spring);}
-.modal-overlay.open .modal-box{transform:translateZ(0) scale(1) translateY(0);}
-.modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid var(--line);font-size:11px;font-weight:bold;color:var(--white);}
-.modal-head button{background:none;border:none;color:var(--dim);display:flex;}
-.modal-head button:hover{color:var(--red);}
-.modal-thumb-row{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);}
-.modal-thumb-row img{width:44px;height:44px;object-fit:cover;flex-shrink:0;}
-.modal-thumb-row span{font-size:10px;color:var(--yellow);text-transform:uppercase;}
-.board-list{overflow-y:auto;flex:1;max-height:260px;}
-.board-row{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;font-size:11px;text-transform:uppercase;color:var(--dim);}
-.board-row:hover{background:var(--panel);color:var(--white);}
-.board-checkbox{width:16px;height:16px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;}
-.board-row.checked .board-checkbox{background:var(--yellow);border-color:var(--yellow); color:var(--void);}
-.board-new-row{display:flex;border-top:1px solid var(--line);}
-.board-new-row input{flex:1;background:none;border:none;outline:none;color:var(--white);padding:14px;font-size:11px;text-transform:uppercase;}
-.board-new-row button{background:var(--yellow);border:none;color:var(--void);padding:0 20px;}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--yellow);color:var(--void);padding:12px 20px;font-size:11px;font-weight:bold;text-transform:uppercase;z-index:2000;opacity:0;transition:0.2s;pointer-events:none;}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.dash{display:none;background:var(--void2);border-bottom:1px solid var(--line);padding:16px 20px;gap:10px;flex-direction:column;}
-.dash.open{display:flex;}
-.dash-row{display:flex;align-items:center;gap:10px;font-size:10px;text-transform:uppercase;}
-.dash-label{width:110px;color:var(--dim);flex-shrink:0;}
-.dash-bar-track{flex:1;height:8px;background:var(--panel);}
-.dash-bar-fill{height:100%;background:linear-gradient(90deg,var(--yellow),var(--amber));transition:width .4s ease;}
-.dash-num{width:36px;text-align:right;color:var(--dim2);flex-shrink:0;}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style-shared.css">
+<link rel="stylesheet" href="style-main.css">
+<link rel="stylesheet" href="style-hub.css">
 </head>
 <body>
 
-<header class="site-header">
-  <div class="brand">
-    <div class="site-title">RAWx<span>//</span>ENGINE</div>
-    <div class="brand-sub">B2B COMMERCIAL PROTOCOL V3</div>
-  </div>
-  <div class="header-stats">
-    <div class="hstat accent"><b id="stat-total"></b><span>Total Files</span></div>
-    <div class="hstat"><b id="stat-visible"></b><span>Visible</span></div>
-    <div class="hstat"><b id="stat-cats"></b><span>Tags</span></div>
-    <div class="hstat"><b id="stat-fav"></b><span>Favs</span></div>
-    <div class="hstat"><b id="stat-boards"></b><span>Boards</span></div>
+<!-- ================= SHARED CROSS-PAGE NAV STRIP ================= -->
+<nav class="rawx-nav-strip">
+  <a href="index.html" class="active"><span class="dot"></span>D2C Storefront</a>
+  <a href="index-b2b.html">Wholesale Terminal →</a>
+  <a href="index-about.html">Archive / About →</a>
+</nav>
+
+<div id="calibration-line"></div>
+<div id="reticle"><div class="crosshair"></div><span class="coord">X000 Y000</span></div>
+<div id="grain"></div>
+
+<!-- ================= HEADER ================= -->
+<header>
+  <div class="logo">RAW<span class="x">x</span></div>
+  <div class="header-right">
+    <div class="lang-select" id="langSelect">
+      <button class="lang-current" id="langCurrent">EN <span class="caret">▾</span></button>
+      <div class="lang-menu">
+        <button data-lang="EN">EN</button>
+        <button data-lang="BD">BD</button>
+        <button data-lang="JP">JP</button>
+        <button data-lang="NL">NL</button>
+        <button data-lang="FR">FR</button>
+        <button data-lang="DE">DE</button>
+      </div>
+    </div>
+    <a href="#" class="cart-indicator">[ 0 ]</a>
   </div>
 </header>
 
-<div class="toolbar" id="toolbar"></div>
-<div class="tagbar" id="tagbar"></div>
-<div class="boardbar" id="boardbar"></div>
-<div class="dash" id="dash"></div>
-<div class="gallery" id="grid"></div>
+<!-- ================= B2B REDIRECT STRIP ================= -->
+<a href="index-b2b.html" class="b2b-strip" id="b2bStrip">
+  <span class="b2b-strip-dot"></span>
+  <span class="b2b-strip-text">Sourcing 500+ units? Skip the storefront — enter the Wholesale Terminal</span>
+  <span class="b2b-strip-arrow">→</span>
+</a>
 
-<div class="modal-overlay" id="board-modal-overlay" onclick="if(event.target===this) closeBoardModal()">
-  <div class="modal-box">
-    <div class="modal-head">
-      <span>PIN TO BOARD</span>
-      <button onclick="closeBoardModal()" id="board-modal-close"></button>
-    </div>
-    <div class="modal-thumb-row" id="board-modal-thumb"></div>
-    <div class="board-list" id="board-modal-list"></div>
-    <div class="board-new-row">
-      <input id="board-new-input" placeholder="CREATE NEW BOARD" maxlength="40" onkeydown="if(event.key==='Enter') submitNewBoard()">
-      <button onclick="submitNewBoard()" id="board-new-btn"></button>
+<!-- ================= HERO SLIDER ================= -->
+<section id="hero">
+  <div class="slide active" data-index="01">
+    <div class="slide-media" data-kind="twoset"></div>
+    <div class="slide-content">
+      <div class="slide-index">FILE_01 — ORIGIN</div>
+      <h1 class="slide-headline">No Markup<br>For A Name</h1>
+      <a href="#edit" class="slide-cta">Shop The Edit <span class="arrow">→</span></a>
     </div>
   </div>
-</div>
+  <div class="slide" data-index="02">
+    <div class="slide-media" data-kind="bodysuit"></div>
+    <div class="slide-content">
+      <div class="slide-index">FILE_02 — CONSTRUCTION</div>
+      <h1 class="slide-headline">Second-Skin<br>Architecture</h1>
+      <a href="#fabric" class="slide-cta">Inspect The Build <span class="arrow">→</span></a>
+    </div>
+  </div>
+  <div class="slide" data-index="03">
+    <div class="slide-media" data-kind="activewear"></div>
+    <div class="slide-content">
+      <div class="slide-index">FILE_03 — SUPPLY CHAIN</div>
+      <h1 class="slide-headline">Built Where<br>It's Actually Built</h1>
+      <a href="#footer" class="slide-cta">Trace The Factory <span class="arrow">→</span></a>
+    </div>
+  </div>
 
-<div id="lightbox">
-  <div class="lb-top">
-    <div class="lb-title-wrap" style="display:flex; align-items:center; gap:10px;">
-      <span class="cat-icon" id="lb-cat-icon"></span><span id="lb-title">ASSET DATA</span>
-    </div>
-    <div class="lb-actions">
-      <button class="lb-btn" id="lb-fav" onclick="toggleFavInLb()" title="Favorite"></button>
-      <button class="lb-btn" id="lb-board" onclick="openBoardModal(activeSet[lbIndex].id)" title="Pin"></button>
-      <button class="lb-btn" id="lb-copy" onclick="copyLbPath()" title="Copy Link"></button>
-      <button class="lb-btn lb-btn-text" id="lb-speed" onclick="cycleSpeed()" title="Slideshow Speed"></button>
-      <button class="lb-btn" id="lb-play" onclick="toggleSlideshow()" title="Slideshow"></button>
-      <button class="lb-btn" id="lb-fullscreen" onclick="toggleFullscreen()" title="Fullscreen"></button>
-      <a class="lb-btn" id="lb-download" download title="Download"></a>
-      <button class="lb-btn lb-close" onclick="closeLb()" title="Close"></button>
+  <div class="hero-scroll-cue"><div class="stem"></div><span>Scroll</span></div>
+
+  <div class="hero-nav">
+    <div class="hero-count"><span id="slideNow">01</span> / 03</div>
+    <div class="hero-progress" id="heroProgress">
+      <div class="bar active"><span></span></div>
+      <div class="bar"><span></span></div>
+      <div class="bar"><span></span></div>
     </div>
   </div>
-  
-  <div class="lb-stage" id="lb-stage">
-    <div class="lb-progress" id="lb-progress"></div>
-    <button class="lb-nav prev" onclick="navLb(-1)"></button>
-    <div id="lb-media-holder" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;"></div>
-    <button class="lb-nav next" onclick="navLb(1)"></button>
+</section>
+
+<!-- ================= CATEGORY STRIP ================= -->
+<section id="categories">
+  <div class="category-grid">
+    <a href="#" class="cat-tile reveal" data-kind="bodysuit">
+      <img alt="Bodysuits">
+      <div class="cat-label"><span class="cat-num">01</span><span class="cat-name">Bodysuits</span></div>
+    </a>
+    <a href="#" class="cat-tile reveal" data-kind="twoset">
+      <img alt="Sets">
+      <div class="cat-label"><span class="cat-num">02</span><span class="cat-name">Sets</span></div>
+    </a>
+    <a href="#" class="cat-tile reveal" data-kind="essential">
+      <img alt="Essentials">
+      <div class="cat-label"><span class="cat-num">03</span><span class="cat-name">Essentials</span></div>
+    </a>
+    <a href="#" class="cat-tile reveal" data-kind="activewear">
+      <img alt="Activewear">
+      <div class="cat-label"><span class="cat-num">04</span><span class="cat-name">Activewear</span></div>
+    </a>
   </div>
-  
-  <div class="lb-metadata-panel">
-      <div class="meta-prompt">
-          <strong>TECHNICAL SPECS // </strong> <br>
-          <span id="lb-prompt-text">8K resolution, Hasselblad quality, 85mm lens simulation, brutalist industrial realism, hyper-detailed</span>
+</section>
+
+<!-- ================= THE EDIT ================= -->
+<section id="edit">
+  <div class="edit-module">
+    <div class="edit-image reveal" data-kind="lingerie">
+      <img alt="The Edit capsule">
+    </div>
+    <div class="edit-copy reveal">
+      <span class="eyebrow">Capsule <em>004</em> — Limited Run</span>
+      <h3>The Tension Line</h3>
+      <p>Eleven pieces, one spec sheet, zero compromise. <strong>The Tension Line</strong> was engineered on the same cutting floor as our wholesale accounts — the ones who audit every gram of fabric before they'll sign an order.</p>
+      <p>What's different here isn't the machinery. It's that nothing stands between you and it. No showroom markup, no seasonal filler, no name tax. Just the construction, priced at what construction costs.</p>
+      <a href="#" class="edit-cta">Enter The Capsule</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BESTSELLERS ================= -->
+<section id="bestsellers">
+  <div class="section-head reveal">
+    <h2>Bestsellers</h2>
+    <p class="section-tag">Ranked by reorder rate, not by algorithm. What sells is what survives the wash.</p>
+  </div>
+  <div class="carousel-wrap">
+    <div class="carousel-track" id="carouselTrack">
+      <!-- cards injected by JS -->
+    </div>
+    <div class="carousel-controls">
+      <button class="carousel-btn" id="carPrev">←</button>
+      <button class="carousel-btn" id="carNext">→</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FIT & FABRIC ================= -->
+<section id="fabric">
+  <div class="section-head reveal">
+    <h2>Fit &amp; Fabric</h2>
+    <p class="section-tag">Everything you feel against skin, explained in plain terms.</p>
+  </div>
+  <div class="fabric-grid">
+    <div class="fabric-item reveal">
+      <span class="fabric-mark">01</span>
+      <div>
+        <h4>Second-Skin Stretch</h4>
+        <p>4-way engineered stretch that moves with you and returns to form — not fabric that eventually gives up and stays stretched.</p>
       </div>
-      <button class="b2b-btn" onclick="window.open('https://handfilm.myshopify.com/', '_blank')">
-          <svg style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-          INITIATE B2B INVOICE
-      </button>
+    </div>
+    <div class="fabric-item reveal">
+      <span class="fabric-mark">02</span>
+      <div>
+        <h4>Zero-Chafe Seaming</h4>
+        <p>Bonded seams laid flat against the body. No tags, no ridges, nothing you'll notice by hour six.</p>
+      </div>
+    </div>
+    <div class="fabric-item reveal">
+      <span class="fabric-mark">03</span>
+      <div>
+        <h4>Matte Recovery Weight</h4>
+        <p>A weight that holds shape under motion but never reads heavy — matte-finished so it photographs like it feels.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CAMPAIGN FILM STRIP ================= -->
+<section id="campaign">
+  <div class="film-strip" data-kind="bodysuit">
+    <img alt="Campaign film">
+    <button class="play-btn" aria-label="Play campaign film"><span class="tri"></span></button>
+    <div class="film-caption">Campaign <em>FW26</em> — Cut On Site, Dhaka</div>
+    <div class="film-runtime">01:12</div>
+  </div>
+</section>
+
+<!-- ================= ARCHIVE / SOCIAL PROOF ================= -->
+<section id="archive">
+  <div class="section-head reveal">
+    <h2>The Archive</h2>
+    <p class="section-tag">Unedited. Contact-sheet grain, buyer words, no retouching.</p>
+  </div>
+  <div class="archive-grid">
+    <div class="archive-cell tall reveal" data-kind="thong"><img alt=""></div>
+    <div class="archive-cell reveal" data-kind="panty"><img alt=""></div>
+    <div class="archive-cell wide reveal archive-quote"><p>Fit like it was cut for me, not for a size chart</p><span>— K. Ahn, Verified</span></div>
+    <div class="archive-cell reveal" data-kind="essential"><img alt=""></div>
+    <div class="archive-cell reveal" data-kind="twoset"><img alt=""></div>
+    <div class="archive-cell tall reveal" data-kind="lingerie"><img alt=""></div>
+    <div class="archive-cell wide reveal archive-quote"><p>Stopped buying anywhere else the day I saw the seams up close</p><span>— R. Dutta, Verified</span></div>
+    <div class="archive-cell reveal" data-kind="activewear"><img alt=""></div>
+    <div class="archive-cell reveal" data-kind="bodysuit"><img alt=""></div>
+    <div class="archive-cell reveal" data-kind="twoset"><img alt=""></div>
+  </div>
+</section>
+
+<!-- ================= ABOUT ================= -->
+<section id="about">
+  <div class="section-head reveal">
+    <h2>The Structure</h2>
+    <p class="section-tag">Not a mood board. A supply chain with a design language.</p>
+  </div>
+  <div class="about-grid">
+    <div class="about-copy reveal">
+      <p class="about-lede">RAWx is cut where it's built — Dhaka origin, factory-direct, zero middle markup. Every seam you see on this site is a seam we can trace back to a machine and a name.</p>
+      <p>The aesthetic is industrial by intention: void black, hazard red, raw calibration lines — the visual language of a spec sheet, not a mood board. We design second-skin architecture first and photograph it second, which is why the archive above is unedited contact-sheet grain rather than retouched campaign work.</p>
+      <p>RAWx sits inside a wider system — Handfilm builds the content methodology, Hands&amp;Head runs the B2B sourcing engine. If you're a buyer rather than a customer, that engine is one click away.</p>
+      <a href="index-b2b.html" class="about-cta">Talk To The Factory <span class="arrow">→</span></a>
+    </div>
+    <div class="about-stats reveal">
+      <div class="about-stat"><b>Dhaka</b><span>Factory Origin</span></div>
+      <div class="about-stat"><b>0%</b><span>Middleman Markup</span></div>
+      <div class="about-stat"><b>500+</b><span>Unit Minimum, Wholesale</span></div>
+      <div class="about-stat"><b>FW26</b><span>Current Season</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WHOLESALE CTA BLOCK ================= -->
+<section id="wholesale-cta">
+  <div class="wholesale-cta-inner reveal">
+    <div class="wholesale-cta-eyebrow">For Buyers, Not Browsers</div>
+    <h2>This Is The Storefront.<br>The Factory Is Through Here.</h2>
+    <p>Tech packs, MOQ, landed cost, production timelines — the Wholesale Terminal is where sourcing teams actually work.</p>
+    <a href="index-b2b.html" class="wholesale-cta-btn">Enter Wholesale Terminal <span class="arrow">→</span></a>
+  </div>
+</section>
+
+<!-- ================= B2B PROTOCOL MODULES (expanded from wholesale-cta) ================= -->
+<section id="wholesale-modules">
+  <div class="pm-grid">
+
+    <div class="pm-card pm-accent">
+      <div class="pm-index">01</div>
+      <h3>Protocol Overview</h3>
+      <p>The Wholesale Terminal replaces the sales call. Browse the live production registry, pin references to a board, and submit a structured inquiry — no back-and-forth on email threads.</p>
+      <ul class="pm-list">
+        <li>Live photography registry, tagged by construction</li>
+        <li>Boards persist per session for buying teams</li>
+        <li>Inquiry form routes straight to production</li>
+      </ul>
+    </div>
+
+    <div class="pm-card">
+      <div class="pm-index">02</div>
+      <h3>Technical Blueprint</h3>
+      <p>Every asset carries its own spec sheet — material, MOQ, sizing, colorway count — pulled at the point of inquiry, not negotiated after.</p>
+      <div class="pm-spec-row"><span>Material Specs</span><b>Attached / Frame</b></div>
+      <div class="pm-spec-row"><span>MOQ</span><b>Per Style</b></div>
+      <div class="pm-spec-row"><span>Lead Time</span><b>25–35 Days</b></div>
+      <div class="pm-spec-row"><span>Origin</span><b>Dhaka, BD</b></div>
+    </div>
+
+    <div class="pm-card">
+      <div class="pm-index">03</div>
+      <h3>Workflow Automation</h3>
+      <p>Inquiries submitted in the Terminal route directly into production scheduling — no manual re-entry, no lost leads sitting in an inbox.</p>
+      <div class="pm-flow">
+        <span>Board Pinned</span><i>→</i>
+        <span>Inquiry Sent</span><i>→</i>
+        <span>Quote Routed</span><i>→</i>
+        <span>Production Queue</span>
+      </div>
+    </div>
+
+    <div class="pm-card pm-cta-card">
+      <div class="pm-index">04</div>
+      <h3>Start A Request</h3>
+      <p>Already know what you're sourcing? Skip the browse — pin a reference and open the inquiry form directly from any asset.</p>
+      <a href="index-b2b.html#grid" class="pm-cta-btn">Enter Wholesale Terminal <span class="arrow">→</span></a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= ARCHIVE / ABOUT — EMBEDDED LIVE ================= -->
+<section class="embed-section" id="archive-embed">
+  <div class="embed-label">
+    <span class="eyebrow">Full <em>Archive</em> — Live</span>
+    <a href="index-about.html">Open Full Screen →</a>
+  </div>
+  <div class="embed-frame-wrap">
+    <iframe src="index-about.html" title="RAWx Archive — full photo registry, filters, and lightbox" loading="lazy"></iframe>
+  </div>
+</section>
+
+<!-- ================= CATALOGUE — DUAL MODE, EMBEDDED LIVE ================= -->
+<section class="embed-section" id="catalogue-embed">
+  <div class="embed-label">
+    <span class="eyebrow">Drop <em>Catalogue</em> — Dual Mode</span>
+    <a href="rawx-catalogue-dual-mode.html">Open Full Screen →</a>
+  </div>
+  <div class="embed-frame-wrap">
+    <iframe src="rawx-catalogue-dual-mode.html" title="RAWx Drop Catalogue — Structural / Candy mode toggle, full collection download" loading="lazy"></iframe>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer id="footer">
+  <div class="footer-capture reveal">
+    <span class="eyebrow">Access <em>List</em></span>
+    <h3>Get Restock Alerts Before The Terminal Sees Them</h3>
+    <form class="capture-form" id="captureForm">
+      <input type="email" placeholder="your@email.com" required id="captureEmail">
+      <button type="submit">Submit</button>
+    </form>
+    <p class="capture-note" id="captureNote">No spam. Restocks, drops, and factory notes only.</p>
   </div>
 
-  <div class="filmstrip" id="filmstrip"></div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-/* ============================================================
-   SVG ICONS
-============================================================ */
-const ICONS = {
-  all:        `<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>`,
-  newest:     `<svg class="icon" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>`,
-  az:         `<svg class="icon" viewBox="0 0 24 24"><path d="M3 8l4-5 4 5M3.5 6.5h7M17 3v18M13 17l4 4 4-4"/></svg>`,
-  shuffle:    `<svg class="icon" viewBox="0 0 24 24"><path d="M3 6h4l10 12h4M17 6h4v4M3 18h4l3-3.5M17 18h4v-4M14 6.5L15.5 8"/></svg>`,
-  grid:       `<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`,
-  masonry:    `<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="6" height="10"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="11" width="6" height="10"/></svg>`,
-  list:       `<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="4" height="4"/><rect x="3" y="10" width="4" height="4"/><rect x="3" y="16" width="4" height="4"/><path d="M10 6h11M10 12h11M10 18h11"/></svg>`,
-  search:     `<svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>`,
-  close:      `<svg class="icon" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>`,
-  fullscreen: `<svg class="icon" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>`,
-  download:   `<svg class="icon" viewBox="0 0 24 24"><path d="M12 3v13M7 11l5 5 5-5M4 21h16"/></svg>`,
-  copy:       `<svg class="icon" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="1"/><path d="M4 16V5a1 1 0 011-1h11"/></svg>`,
-  prev:       `<svg class="icon" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>`,
-  next:       `<svg class="icon" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>`,
-  video:      `<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="1"/><path d="M16 10l5-3v10l-5-3"/></svg>`,
-  play:       `<svg class="icon" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>`,
-  pause:      `<svg class="icon" viewBox="0 0 24 24"><rect x="5" y="4" width="5" height="16"/><rect x="14" y="4" width="5" height="16"/></svg>`,
-  boards:     `<svg class="icon" viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>`,
-  trash:      `<svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>`,
-  plus:       `<svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>`,
-  check:      `<svg class="icon" viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg>`,
-  star:       `<svg class="icon" viewBox="0 0 24 24"><path d="M12 2l2.4 6.8L21 11l-6.6 2.2L12 20l-2.4-6.8L3 11l6.6-2.2z"/></svg>`,
-  starFill:   `<svg class="icon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.4 6.8L21 11l-6.6 2.2L12 20l-2.4-6.8L3 11l6.6-2.2z"/></svg>`,
-  dash:       `<svg class="icon" viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>`,
-  /* Categories */
-  hunkemoller:`<svg class="icon" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
-  twoset:     `<svg class="icon" viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"/><circle cx="16" cy="16" r="4"/></svg>`,
-  activewear: `<svg class="icon" viewBox="0 0 24 24"><path d="M6 7l3-3h6l3 3 3 3-3 3v8H6v-8L3 10z"/></svg>`,
-  bodysuit:   `<svg class="icon" viewBox="0 0 24 24"><path d="M9 3h6l1 5-2 2v11H10V10L8 8z"/></svg>`,
-  essential:  `<svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>`,
-  social:     `<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>`,
-  lingerie:   `<svg class="icon" viewBox="0 0 24 24"><path d="M3 8l4 4 5-8 5 8 4-4-2 11H5z"/></svg>`,
-  panty:      `<svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16l-2 8-6 8-6-8z"/></svg>`,
-  scrap:      `<svg class="icon" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.5 8l11 11M20 4L8.5 15.5M9 9l2 2"/></svg>`
-};
-function icon(name){ return ICONS[name] || ICONS.scrap; }
-
-const SECTIONS = [
-  { key:'hunkemoller', label:'Hunkemoller' },
-  { key:'activewear',  label:'Activewear' },
-  { key:'bodysuit',    label:'Bodysuit' },
-  { key:'lingerie',    label:'Lingerie / Luxury' },
-  { key:'twoset',      label:'2-Piece Set' },
-  { key:'panty',       label:'Panty / Thong' },
-  { key:'essential',   label:'Essential' },
-  { key:'social',      label:'Social / Pin' },
-  { key:'scrap',       label:'Scrap / Other' }
-];
-
-/* ============================================================
-   ASSET REGISTRY - PASTE js_array.txt HERE
-============================================================ */
-const BASE = 'https://media.githubusercontent.com/media/handfilm/rawx-lingerie/main/assets/images/';
-
-const rawFilesArray = [
-"2set (1).jpg", "2set (1).webp", "2set (10).webp", "2set (11).webp", "2set (12).webp", "2set (13).webp", "2set (14).webp", "2set (15).webp", "2set (16).webp", "2set (17).webp", "2set (18).webp", "2set (19).webp", "2set (2).jpg", "2set (2).webp", "2set (20).webp", "2set (21).webp", "2set (22).webp", "2set (23).webp", "2set (24).webp", "2set (25).webp", "2set (26).webp", "2set (27).webp", "2set (28).webp", "2set (29).webp", "2set (3).jpg", "2set (3).webp", "2set (30).webp", "2set (31).webp", "2set (32).webp", "2set (33).webp", "2set (4).jpg", "2set (4).webp", "2set (5).jpg", "2set (5).webp", "2set (6).jpg", "2set (6).webp", "2set (7).webp", "2set (8).webp", "2set (9).webp", "2set.jpg", "2set.webp", "56915.webp", "activewear (1).webp", "activewear (10).webp", "activewear (11).webp", "activewear (12).webp", "activewear (13).webp", "activewear (14).webp", "activewear (15).webp", "activewear (16).webp", "activewear (17).webp", "activewear (18).webp", "activewear (19).webp", "activewear (2).webp", "activewear (20).webp", "activewear (21).webp", "activewear (22).webp", "activewear (23).webp", "activewear (24).webp", "activewear (25).webp", "activewear (26).webp", "activewear (27).webp", "activewear (28).webp", "activewear (29).webp", "activewear (3).webp", "activewear (30).webp", "activewear (31).webp", "activewear (32).webp", "activewear (33).webp", "activewear (34).webp", "activewear (35).webp", "activewear (36).webp", "activewear (37).webp", "activewear (38).webp", "activewear (39).webp", "activewear (4).webp", "activewear (40).webp", "activewear (41).webp", "activewear (42).webp", "activewear (43).webp", "activewear (44).webp", "activewear (45).webp", "activewear (46).webp", "activewear (47).webp", "activewear (48).webp", "activewear (49).webp", "activewear (5).webp", "activewear (50).webp", "activewear (51).webp", "activewear (52).webp", "activewear (53).webp", "activewear (54).webp", "activewear (55).webp", "activewear (56).webp", "activewear (57).webp", "activewear (58).webp", "activewear (59).webp", "activewear (6).webp", "activewear (7).webp", "activewear (8).webp", "activewear (9).webp", "bodysuit (1).webp", "bodysuit (11).jpeg", "bodysuit (12).jpeg", "bodysuit (13).jpeg", "bodysuit (14).jpeg", "bodysuit (14).png", "bodysuit (15).jpeg", "bodysuit (15).png", "bodysuit (16).jpeg", "bodysuit (16).webp", "bodysuit (17).jpeg", "bodysuit (17).webp", "bodysuit (18).jpeg", "bodysuit (18).webp", "bodysuit (19).webp", "bodysuit (2).webp", "bodysuit (20).webp", "bodysuit (3).webp", "bodysuit (4).webp", "bodysuit (5).webp", "bodysuit (6).webp", "bodysuit (61).jpg", "bodysuit (7).webp", "bodysuit (8).webp", "bodysuit (9).webp", "bodysuit.jpg", "bodysuit.webp", "essential (1).webp", "essential (2).webp", "essential (3).webp", "essential (4).webp", "essential (5).webp", "essential (6).webp", "essential (7).webp", "essential (8).webp", "essential (9).webp", "Hunkemoller (1).jpg", "Hunkemoller (1).webp", "Hunkemoller (10).jpg", "Hunkemoller (10).webp", "Hunkemoller (100).jpg", "Hunkemoller (100).webp", "Hunkemoller (101).jpg", "Hunkemoller (101).webp", "Hunkemoller (102).jpg", "Hunkemoller (102).webp", "Hunkemoller (103).jpg", "Hunkemoller (103).webp", "Hunkemoller (104).jpg", "Hunkemoller (104).webp", "Hunkemoller (105).jpg", "Hunkemoller (105).webp", "Hunkemoller (106).jpg", "Hunkemoller (106).webp", "Hunkemoller (107).jpg", "Hunkemoller (107).webp", "Hunkemoller (108).jpg", "Hunkemoller (108).webp", "Hunkemoller (109).jpg", "Hunkemoller (109).webp", "Hunkemoller (11).jpg", "Hunkemoller (11).webp", "Hunkemoller (110).jpg", "Hunkemoller (110).webp", "Hunkemoller (111).jpg", "Hunkemoller (111).webp", "Hunkemoller (112).jpg", "Hunkemoller (112).webp", "Hunkemoller (113).jpg", "Hunkemoller (113).webp", "Hunkemoller (114).jpg", "Hunkemoller (114).webp", "Hunkemoller (115).jpg", "Hunkemoller (115).webp", "Hunkemoller (116).jpg", "Hunkemoller (116).webp", "Hunkemoller (117).jpg", "Hunkemoller (117).webp", "Hunkemoller (118).webp", "Hunkemoller (119).webp", "Hunkemoller (12).jpg", "Hunkemoller (12).webp", "Hunkemoller (120).webp", "Hunkemoller (121).webp", "Hunkemoller (122).webp", "Hunkemoller (123).webp", "Hunkemoller (124).webp", "Hunkemoller (125).webp", "Hunkemoller (126).webp", "Hunkemoller (127).webp", "Hunkemoller (128).webp", "Hunkemoller (129).webp", "Hunkemoller (13).jpg", "Hunkemoller (13).webp", "Hunkemoller (130).webp", "Hunkemoller (131).webp", "Hunkemoller (132).webp", "Hunkemoller (133).webp", "Hunkemoller (134).webp", "Hunkemoller (135).webp", "Hunkemoller (136).webp", "Hunkemoller (137).webp", "Hunkemoller (138).webp", "Hunkemoller (139).webp", "Hunkemoller (14).jpg", "Hunkemoller (14).webp", "Hunkemoller (140).webp", "Hunkemoller (141).webp", "Hunkemoller (142).webp", "Hunkemoller (143).webp", "Hunkemoller (144).webp", "Hunkemoller (145).webp", "Hunkemoller (146).webp", "Hunkemoller (147).webp", "Hunkemoller (148).webp", "Hunkemoller (149).webp", "Hunkemoller (15).jpg", "Hunkemoller (15).webp", "Hunkemoller (150).webp", "Hunkemoller (151).webp", "Hunkemoller (152).webp", "Hunkemoller (153).webp", "Hunkemoller (154).webp", "Hunkemoller (155).webp", "Hunkemoller (156).webp", "Hunkemoller (157).webp", "Hunkemoller (158).webp", "Hunkemoller (159).webp", "Hunkemoller (16).jpg", "Hunkemoller (16).webp", "Hunkemoller (160).webp", "Hunkemoller (161).webp", "Hunkemoller (162).webp", "Hunkemoller (163).webp", "Hunkemoller (164).webp", "Hunkemoller (165).webp", "Hunkemoller (166).webp", "Hunkemoller (167).webp", "Hunkemoller (168).webp", "Hunkemoller (169).webp", "Hunkemoller (17).jpg", "Hunkemoller (17).webp", "Hunkemoller (170).webp", "Hunkemoller (171).webp", "Hunkemoller (172).webp", "Hunkemoller (173).webp", "Hunkemoller (174).webp", "Hunkemoller (175).webp", "Hunkemoller (176).webp", "Hunkemoller (177).webp", "Hunkemoller (178).webp", "Hunkemoller (179).webp", "Hunkemoller (18).jpg", "Hunkemoller (18).webp", "Hunkemoller (180).webp", "Hunkemoller (181).webp", "Hunkemoller (182).webp", "Hunkemoller (183).webp", "Hunkemoller (184).webp", "Hunkemoller (185).webp", "Hunkemoller (186).webp", "Hunkemoller (187).webp", "Hunkemoller (19).jpg", "Hunkemoller (19).webp", "Hunkemoller (2).jpg", "Hunkemoller (2).webp", "Hunkemoller (20).jpg", "Hunkemoller (20).webp", "Hunkemoller (21).jpg", "Hunkemoller (21).webp", "Hunkemoller (22).jpg", "Hunkemoller (22).webp", "Hunkemoller (23).jpg", "Hunkemoller (23).webp", "Hunkemoller (24).jpg", "Hunkemoller (24).webp", "Hunkemoller (25).jpg", "Hunkemoller (25).webp", "Hunkemoller (26).jpg", "Hunkemoller (26).webp", "Hunkemoller (27).jpg", "Hunkemoller (27).webp", "Hunkemoller (28).jpg", "Hunkemoller (28).webp", "Hunkemoller (29).jpg", "Hunkemoller (29).webp", "Hunkemoller (3).jpg", "Hunkemoller (3).webp", "Hunkemoller (30).jpg", "Hunkemoller (30).webp", "Hunkemoller (31).jpg", "Hunkemoller (31).webp", "Hunkemoller (32).jpg", "Hunkemoller (32).webp", "Hunkemoller (33).jpg", "Hunkemoller (33).webp", "Hunkemoller (34).jpg", "Hunkemoller (34).webp", "Hunkemoller (35).jpg", "Hunkemoller (35).webp", "Hunkemoller (36).jpg", "Hunkemoller (36).webp", "Hunkemoller (37).jpg", "Hunkemoller (37).webp", "Hunkemoller (38).jpg", "Hunkemoller (38).webp", "Hunkemoller (39).jpg", "Hunkemoller (39).webp", "Hunkemoller (4).jpg", "Hunkemoller (4).webp", "Hunkemoller (40).jpg", "Hunkemoller (40).webp", "Hunkemoller (41).jpg", "Hunkemoller (41).webp", "Hunkemoller (42).jpg", "Hunkemoller (42).webp", "Hunkemoller (43).jpg", "Hunkemoller (43).webp", "Hunkemoller (44).jpg", "Hunkemoller (44).webp", "Hunkemoller (45).jpg", "Hunkemoller (45).webp", "Hunkemoller (46).jpg", "Hunkemoller (46).webp", "Hunkemoller (47).jpg", "Hunkemoller (47).webp", "Hunkemoller (48).jpg", "Hunkemoller (48).webp", "Hunkemoller (49).jpg", "Hunkemoller (49).webp", "Hunkemoller (5).jpg", "Hunkemoller (5).webp", "Hunkemoller (50).jpg", "Hunkemoller (50).webp", "Hunkemoller (51).jpg", "Hunkemoller (51).webp", "Hunkemoller (52).jpg", "Hunkemoller (52).webp", "Hunkemoller (53).jpg", "Hunkemoller (53).webp", "Hunkemoller (54).jpg", "Hunkemoller (54).webp", "Hunkemoller (55).jpg", "Hunkemoller (55).webp", "Hunkemoller (56).jpg", "Hunkemoller (56).webp", "Hunkemoller (57).jpg", "Hunkemoller (57).webp", "Hunkemoller (58).jpg", "Hunkemoller (58).webp", "Hunkemoller (59).jpg", "Hunkemoller (59).webp", "Hunkemoller (6).jpg", "Hunkemoller (6).webp", "Hunkemoller (60).jpg", "Hunkemoller (60).webp", "Hunkemoller (61).jpg", "Hunkemoller (61).webp", "Hunkemoller (62).jpg", "Hunkemoller (62).webp", "Hunkemoller (63).jpg", "Hunkemoller (63).webp", "Hunkemoller (64).jpg", "Hunkemoller (64).webp", "Hunkemoller (65).jpg", "Hunkemoller (65).webp", "Hunkemoller (66).jpg", "Hunkemoller (66).webp", "Hunkemoller (67).jpg", "Hunkemoller (67).webp", "Hunkemoller (68).jpg", "Hunkemoller (68).webp", "Hunkemoller (69).jpg", "Hunkemoller (69).webp", "Hunkemoller (7).jpg", "Hunkemoller (7).webp", "Hunkemoller (70).jpg", "Hunkemoller (70).webp", "Hunkemoller (71).jpg", "Hunkemoller (71).webp", "Hunkemoller (72).jpg", "Hunkemoller (72).webp", "Hunkemoller (73).jpg", "Hunkemoller (73).webp", "Hunkemoller (74).jpg", "Hunkemoller (74).webp", "Hunkemoller (75).jpg", "Hunkemoller (75).webp", "Hunkemoller (76).jpg", "Hunkemoller (76).webp", "Hunkemoller (77).jpg", "Hunkemoller (77).webp", "Hunkemoller (78).jpg", "Hunkemoller (78).webp", "Hunkemoller (79).jpg", "Hunkemoller (79).webp", "Hunkemoller (8).jpg", "Hunkemoller (8).webp", "Hunkemoller (80).jpg", "Hunkemoller (80).webp", "Hunkemoller (81).jpg", "Hunkemoller (81).webp", "Hunkemoller (82).jpg", "Hunkemoller (82).webp", "Hunkemoller (83).jpg", "Hunkemoller (83).webp", "Hunkemoller (84).jpg", "Hunkemoller (84).webp", "Hunkemoller (85).jpg", "Hunkemoller (85).webp", "Hunkemoller (86).jpg", "Hunkemoller (86).webp", "Hunkemoller (87).jpg", "Hunkemoller (87).webp", "Hunkemoller (88).jpg", "Hunkemoller (88).webp", "Hunkemoller (89).jpg", "Hunkemoller (89).webp", "Hunkemoller (9).jpg", "Hunkemoller (9).webp", "Hunkemoller (90).jpg", "Hunkemoller (90).webp", "Hunkemoller (91).jpg", "Hunkemoller (91).webp", "Hunkemoller (92).jpg", "Hunkemoller (92).webp", "Hunkemoller (93).jpg", "Hunkemoller (93).webp", "Hunkemoller (94).jpg", "Hunkemoller (94).webp", "Hunkemoller (95).jpg", "Hunkemoller (95).webp", "Hunkemoller (96).jpg", "Hunkemoller (96).webp", "Hunkemoller (97).jpg", "Hunkemoller (97).webp", "Hunkemoller (98).jpg", "Hunkemoller (98).webp", "Hunkemoller (99).jpg", "Hunkemoller (99).webp", "ig (1).png", "ig (1).webp", "ig (10).webp", "ig (11).webp", "ig (12).webp", "ig (13).webp", "ig (2).jpg", "ig (2).webp", "ig (3).webp", "ig (4).webp", "ig (5).webp", "ig (6).webp", "ig (7).webp", "ig (8).webp", "ig (9).webp", "image (13).jpg", "image (14).jpg", "image (15).jpg", "image (16).jpg", "image (17).jpg", "image (18).jpg", "image (19).jpg", "image (20).jpg", "images (19).jpeg", "images (20).jpeg", "images (21).jpeg", "images (22).jpeg", "images (23).jpeg", "images (24).jpeg", "images (25).jpeg", "Lingerie (1).webp", "Lingerie (10).webp", "Lingerie (11).webp", "Lingerie (12).webp", "Lingerie (13).webp", "Lingerie (14).webp", "Lingerie (15).webp", "Lingerie (16).webp", "Lingerie (17).webp", "Lingerie (18).webp", "Lingerie (19).webp", "Lingerie (2).webp", "Lingerie (20).webp", "Lingerie (21).webp", "Lingerie (22).webp", "Lingerie (23).webp", "Lingerie (24).webp", "Lingerie (25).webp", "Lingerie (26).webp", "Lingerie (27).webp", "Lingerie (28).webp", "Lingerie (29).webp", "Lingerie (3).webp", "Lingerie (30).webp", "Lingerie (31).webp", "Lingerie (32).webp", "Lingerie (33).webp", "Lingerie (34).webp", "Lingerie (4).webp", "Lingerie (5).webp", "Lingerie (6).webp", "Lingerie (7).webp", "Lingerie (8).webp", "Lingerie (9).webp", "panty (1).webp", "panty (10).webp", "panty (11).webp", "panty (12).webp", "panty (13).webp", "panty (14).webp", "panty (15).webp", "panty (16).webp", "panty (17).webp", "panty (18).webp", "panty (19).webp", "panty (2).webp", "panty (20).webp", "panty (21).webp", "panty (22).webp", "panty (23).webp", "panty (24).webp", "panty (25).webp", "panty (26).webp", "panty (27).webp", "panty (28).webp", "panty (29).webp", "panty (3).webp", "panty (30).webp", "panty (31).webp", "panty (32).webp", "panty (33).webp", "panty (34).webp", "panty (35).webp", "panty (4).webp", "panty (5).webp", "panty (6).webp", "panty (7).webp", "panty (8).webp", "panty (9).webp", "pin (1).jpg", "pin (10).jpg", "pin (11).jpg", "pin (12).jpg", "pin (13).jpg", "pin (14).jpg", "pin (15).jpg", "pin (16).jpg", "pin (17).jpg", "pin (18).jpg", "pin (19).jpg", "pin (2).jpg", "pin (20).jpg", "pin (21).jpg", "pin (22).jpg", "pin (23).jpg", "pin (24).jpg", "pin (25).jpg", "pin (26).jpg", "pin (27).jpg", "pin (28).jpg", "pin (29).jpg", "pin (30).jpg", "pin (31).jpg", "pin (32).jpg", "pin (33).jpg", "pin (34).jpg", "pin (36).jpg", "pin (37).jpg", "pin (38).jpg", "pin (39).jpg", "pin (4).jpg", "pin (40).jpg", "pin (41).jpg", "pin (42).jpg", "pin (43).jpg", "pin (45).jpg", "pin (46).jpg", "pin (47).jpg", "pin (48).jpg", "pin (49).jpg", "pin (5).jpg", "pin (50).jpg", "pin (51).jpg", "pin (52).jpg", "pin (54).jpg", "pin (55).jpg", "pin (56).jpg", "pin (57).jpg", "pin (58).jpg", "pin (59).jpg", "pin (6).jpg", "pin (60).jpg", "pin (61).jpg", "pin (62).jpg", "pin (63).jpg", "pin (64).jpg", "pin (65).jpg", "pin (66).jpg", "pin (67).jpg", "pin (68).jpg", "pin (69).jpg", "pin (7).jpg", "pin (8).jpg", "pin (9).jpg", "scrap (1).jpeg", "scrap (1).jpg", "scrap (1).png", "scrap (1).webp", "scrap (10).jpg", "scrap (10).png", "scrap (11).jpg", "scrap (12).jpg", "scrap (13).jpg", "scrap (14).jpg", "scrap (15).jpg", "scrap (16).jpg", "scrap (17).jpg", "scrap (18).jpg", "scrap (19).jpg", "scrap (2).jpg", "scrap (2).png", "scrap (20).jpg", "scrap (21).jpg", "scrap (22).jpg", "scrap (23).jpg", "scrap (24).jpg", "scrap (25).jpg", "scrap (26).jpg", "scrap (27).jpg", "scrap (28).jpg", "scrap (29).jpg", "scrap (3).jpg", "scrap (3).png", "scrap (30).jpg", "scrap (31).jpg", "scrap (32).jpg", "scrap (33).jpg", "scrap (34).jpg", "scrap (35).jpg", "scrap (36).jpg", "scrap (37).jpg", "scrap (38).jpg", "scrap (39).jpg", "scrap (4).jpg", "scrap (4).png", "scrap (40).jpg", "scrap (41).jpg", "scrap (42).jpg", "scrap (43).jpg", "scrap (44).jpg", "scrap (45).jpg", "scrap (46).jpg", "scrap (47).jpg", "scrap (48).jpg", "scrap (49).jpg", "scrap (5).jpg", "scrap (5).png", "scrap (50).jpg", "scrap (51).jpg", "scrap (52).jpg", "scrap (53).jpg", "scrap (54).jpg", "scrap (55).jpg", "scrap (56).jpg", "scrap (57).jpg", "scrap (58).jpg", "scrap (59).jpg", "scrap (6).jpg", "scrap (6).png", "scrap (60).jpg", "scrap (61).jpg", "scrap (62).jpg", "scrap (63).jpg", "scrap (64).jpg", "scrap (65).jpg", "scrap (66).jpg", "scrap (67).jpg", "scrap (68).jpg", "scrap (69).jpg", "scrap (7).jpg", "scrap (7).png", "scrap (70).jpg", "scrap (71).jpg", "scrap (72).jpg", "scrap (73).jpg", "scrap (74).jpg", "scrap (75).jpg", "scrap (76).jpg", "scrap (77).jpg", "scrap (78).jpg", "scrap (79).jpg", "scrap (8).jpg", "scrap (8).png", "scrap (80).jpg", "scrap (81).jpg", "scrap (82).jpg", "scrap (83).jpg", "scrap (84).jpg", "scrap (85).jpg", "scrap (86).jpg", "scrap (87).jpg", "scrap (88).jpg", "scrap (89).jpg", "scrap (9).jpg", "scrap (9).png", "scrap (90).jpg", "scrap (91).jpg", "thong (1).jpg", "thong (1).png", "thong (1).webp", "thong (10).webp", "thong (11).webp", "thong (12).webp", "thong (13).webp", "thong (14).webp", "thong (15).webp", "thong (16).webp", "thong (17).webp", "thong (18).webp", "thong (19).webp", "thong (2).png", "thong (2).webp", "thong (20).webp", "thong (21).webp", "thong (22).webp", "thong (23).webp", "thong (24).webp", "thong (25).webp", "thong (26).webp", "thong (27).webp", "thong (28).webp", "thong (29).webp", "thong (3).webp", "thong (30).webp", "thong (31).webp", "thong (32).webp", "thong (33).webp", "thong (34).webp", "thong (35).webp", "thong (36).webp", "thong (37).webp", "thong (38).webp", "thong (39).webp", "thong (4).webp", "thong (40).webp", "thong (41).webp", "thong (42).webp", "thong (43).webp", "thong (44).webp", "thong (45).webp", "thong (46).webp", "thong (47).webp", "thong (48).webp", "thong (49).webp", "thong (5).webp", "thong (50).webp", "thong (51).webp", "thong (52).webp", "thong (53).webp", "thong (6).webp", "thong (7).webp", "thong (8).webp", "thong (9).webp", "thong.png", "thong.webp"
-];
-
-function isVideoExt(fn){ return /\.(mp4|webm|mov)$/i.test(fn); }
-
-// FIX: rawFilesArray is an array of strings, so we map over it correctly!
-let photos = rawFilesArray.map((filename, i) => {
-    const lower = filename.toLowerCase();
-    let kind = 'scrap';
-
-    if (lower.includes('hunkemoller')) kind = 'hunkemoller';
-    else if (lower.includes('2set') || lower.includes('2-piece')) kind = 'twoset';
-    else if (lower.includes('activewear')) kind = 'activewear';
-    else if (lower.includes('bodysuit')) kind = 'bodysuit';
-    else if (lower.includes('lingerie') || lower.includes('luxury')) kind = 'lingerie';
-    else if (lower.includes('panty') || lower.includes('thong')) kind = 'panty';
-    else if (lower.includes('ig') || lower.includes('pin')) kind = 'social';
-    else if (lower.includes('essential')) kind = 'essential';
-
-    // ⚠️ GITHUB CASE-SENSITIVITY FIX ⚠️
-    // এটি গিটহাবের জন্য ক্যাপিটাল লেটারগুলোকে স্বয়ংক্রিয়ভাবে ছোট হাতের করে দেবে
-    let safeFileName = filename.replace('Hunkemoller', 'hunkemoller').replace('Lingerie', 'lingerie');
-
-    return {
-        id: i,
-        title: filename.replace(/\.[^/.]+$/, ""), // এক্সটেনশন রিমুভ করবে
-        kind: kind,
-        file: filename,
-        src: BASE + encodeURIComponent(safeFileName), // ফিক্সড URL
-        video: /\.(mp4|webm|mov)$/i.test(filename)
-    };
-});
-
-/* ============================================================
-   STATE & FAVORITES / BOARDS
-============================================================ */
-let favorites = new Set();
-try { favorites = new Set(JSON.parse(localStorage.getItem('rawx_favs') || '[]')); } catch(e){}
-function saveFavs(){ try { localStorage.setItem('rawx_favs', JSON.stringify([...favorites])); } catch(e){} }
-
-let boards = [];
-let boardItems = {}; 
-try {
-  boards = JSON.parse(localStorage.getItem('rawx_boards') || '[]');
-  const rawMap = JSON.parse(localStorage.getItem('rawx_board_map') || '{}');
-  Object.keys(rawMap).forEach(k => boardItems[k] = new Set(rawMap[k]));
-} catch(e){}
-function saveBoards(){
-  try {
-    localStorage.setItem('rawx_boards', JSON.stringify(boards));
-    const plain = {};
-    Object.keys(boardItems).forEach(k => plain[k] = [...boardItems[k]]);
-    localStorage.setItem('rawx_board_map', JSON.stringify(plain));
-  } catch(e){}
-}
-function boardCount(id){ return boardItems[id] ? boardItems[id].size : 0; }
-function createBoard(name){
-  name = name.trim();
-  if (!name) return null;
-  const id = 'b_' + Date.now() + '_' + Math.floor(Math.random()*999);
-  boards.push({ id, name });
-  boardItems[id] = new Set();
-  saveBoards();
-  return id;
-}
-function deleteBoard(id){
-  const b = boards.find(x => x.id === id);
-  if (!b) return;
-  if (!confirm(`Delete board "${b.name}"? This only removes the board, not the files.`)) return;
-  boards = boards.filter(x => x.id !== id);
-  delete boardItems[id];
-  if (state.board === id) state.board = null;
-  saveBoards();
-  render();
-}
-function toggleBoardItem(boardId, photoId){
-  if (!boardItems[boardId]) boardItems[boardId] = new Set();
-  if (boardItems[boardId].has(photoId)) boardItems[boardId].delete(photoId);
-  else boardItems[boardId].add(photoId);
-  saveBoards();
-}
-function isPinnedAnywhere(photoId){
-  return boards.some(b => boardItems[b.id] && boardItems[b.id].has(photoId));
-}
-
-let state = { mode:'all', view:'grid', tag:null, board:null, query:'', favOnly:false, dash:false };
-let activeSet = photos;
-let visibleCount = 60;
-const BATCH = 60;
-let lbIndex = 0;
-let zoomed = false;
-let io = null;
-
-/* ============================================================
-   FILTER / SORT
-============================================================ */
-function seededShuffle(arr, seed){
-  const a = [...arr];
-  let s = seed;
-  for (let i = a.length - 1; i > 0; i--) {
-    s = (s * 9301 + 49297) % 233280;
-    const j = Math.floor((s / 233280) * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-let shuffleSeed = Date.now() % 100000;
-
-function getFiltered(){
-  let data = [...photos];
-  if (state.board){
-    const set = boardItems[state.board] || new Set();
-    data = data.filter(p => set.has(p.id));
-  } else if (state.tag) data = data.filter(p => p.kind === state.tag);
-  if (state.favOnly) data = data.filter(p => favorites.has(p.id));
-  if (state.query){
-    const q = state.query.toLowerCase();
-    data = data.filter(p => p.title.toLowerCase().includes(q) || p.kind.toLowerCase().includes(q) || p.file.toLowerCase().includes(q));
-  }
-  if (state.mode === 'az') data.sort((a,b) => a.title.localeCompare(b.title));
-  else if (state.mode === 'shuffle') data = seededShuffle(data, shuffleSeed);
-  else if (state.mode === 'newest') data = [...data].reverse();
-  return data;
-}
-
-/* ============================================================
-   RENDERERS
-============================================================ */
-function renderToolbar(){
-  const tb = document.getElementById('toolbar');
-  tb.innerHTML = `
-    <button class="btn ${state.mode==='all'?'active':''}" onclick="setMode('all')">${icon('all')}<span>All</span></button>
-    <button class="btn ${state.mode==='newest'?'active':''}" onclick="setMode('newest')">${icon('newest')}<span>Newest</span></button>
-    <button class="btn ${state.mode==='az'?'active':''}" onclick="setMode('az')">${icon('az')}<span>A–Z</span></button>
-    <button class="btn ${state.mode==='shuffle'?'active':''}" onclick="reshuffle()">${icon('shuffle')}<span>Shuffle</span></button>
-    <button class="btn fav-btn ${state.favOnly?'active':''}" onclick="toggleFavOnly()">${icon(state.favOnly?'starFill':'star')}<span>Favs</span></button>
-    <button class="btn view-btn ${state.view==='grid'?'active':''}" onclick="setView('grid')">${icon('grid')}</button>
-    <button class="btn view-btn ${state.view==='masonry'?'active':''}" onclick="setView('masonry')">${icon('masonry')}</button>
-    <button class="btn view-btn ${state.view==='list'?'active':''}" onclick="setView('list')">${icon('list')}</button>
-    <button class="btn ${state.dash?'active':''}" onclick="toggleDash()">${icon('dash')}<span>Stats</span></button>
-    <div class="search-wrap">${icon('search')}<input id="search" placeholder="SEARCH FRAMES" oninput="onSearch(this.value)"></div>
-    <div id="status"></div>
-  `;
-  document.getElementById('search').value = state.query;
-}
-
-function renderTagbar(){
-  const bar = document.getElementById('tagbar');
-  bar.innerHTML = '';
-  const allChip = document.createElement('div');
-  allChip.className = 'tag-chip' + (state.tag === null && !state.board ? ' active' : '');
-  allChip.innerHTML = `${icon('all')}<span>All</span><span class="tag-count">${photos.length}</span>`;
-  allChip.onclick = () => { state.tag = null; state.board = null; resetPaging(); render(); };
-  bar.appendChild(allChip);
-  SECTIONS.forEach(sec => {
-    const count = photos.filter(p => p.kind === sec.key).length;
-    if (!count) return;
-    const chip = document.createElement('div');
-    chip.className = 'tag-chip' + (state.tag === sec.key && !state.board ? ' active' : '');
-    chip.innerHTML = `<span class="cat-icon">${icon(sec.key)}</span><span>${sec.label}</span><span class="tag-count">${count}</span>`;
-    chip.onclick = () => { state.tag = (state.tag === sec.key ? null : sec.key); state.board = null; resetPaging(); render(); };
-    bar.appendChild(chip);
-  });
-}
-
-function renderBoardbar(){
-  const bar = document.getElementById('boardbar');
-  bar.innerHTML = '';
-  boards.forEach(b => {
-    const count = boardCount(b.id);
-    const chip = document.createElement('div');
-    chip.className = 'board-chip' + (state.board === b.id ? ' active' : '');
-    chip.innerHTML = `
-      <span class="board-chip-label">${icon('boards')}<span>${escapeHtml(b.name)}</span><span class="tag-count">${count}</span></span>
-      <span class="board-chip-del">${icon('trash')}</span>
-    `;
-    chip.querySelector('.board-chip-label').onclick = () => {
-      state.board = (state.board === b.id ? null : b.id);
-      state.tag = null;
-      resetPaging();
-      render();
-    };
-    chip.querySelector('.board-chip-del').onclick = (e) => { e.stopPropagation(); deleteBoard(b.id); };
-    bar.appendChild(chip);
-  });
-}
-
-function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-function renderDash(){
-  const dash = document.getElementById('dash');
-  dash.className = 'dash' + (state.dash ? ' open' : '');
-  if (!state.dash) { dash.innerHTML = ''; return; }
-  const max = Math.max(...SECTIONS.map(s => photos.filter(p => p.kind === s.key).length));
-  dash.innerHTML = SECTIONS.map(sec => {
-    const count = photos.filter(p => p.kind === sec.key).length;
-    if (!count) return '';
-    const pct = Math.round((count / max) * 100);
-    return `<div class="dash-row">
-      <span class="dash-label">${sec.label}</span>
-      <div class="dash-bar-track"><div class="dash-bar-fill" style="width:${pct}%"></div></div>
-      <span class="dash-num">${count}</span>
-    </div>`;
-  }).join('');
-}
-
-function mediaTag(p, forLightbox){
-  if (p.video){
-    return `<video src="${p.src}" ${forLightbox ? 'controls autoplay' : 'muted loop playsinline'} preload="metadata" onloadeddata="this.classList.add('loaded');this.parentElement.classList.add('loaded')"></video>`;
-  }
-  return `<img src="${p.src}" alt="${p.title}" loading="lazy" onload="this.classList.add('loaded');this.parentElement.classList.add('loaded')" onerror="this.parentElement.classList.add('loaded');this.alt='MISSING: ${p.file}'">`;
-}
-
-function resetPaging(){ visibleCount = BATCH; }
-
-function render(){
-  renderToolbar();
-  renderDash();
-  const grid = document.getElementById('grid');
-  grid.className = 'gallery ' + state.view;
-  grid.innerHTML = '';
-
-  activeSet = getFiltered();
-
-  if (!activeSet.length){
-    grid.innerHTML = `<div class="empty-state">${icon('search')}<span>NO PROTOCOLS MATCH</span></div>`;
-  } else {
-    const slice = activeSet.slice(0, visibleCount);
-    const frag = document.createDocumentFragment();
-    slice.forEach((p, i) => frag.appendChild(buildCard(p, i)));
-    grid.appendChild(frag);
-
-    if (visibleCount < activeSet.length){
-      const sentinel = document.createElement('div');
-      sentinel.id = 'sentinel';
-      grid.appendChild(sentinel);
-      observeSentinel(sentinel);
-    }
-  }
-
-  document.getElementById('status').textContent = `${Math.min(visibleCount, activeSet.length)} / ${activeSet.length} SHOWN`;
-  document.getElementById('stat-total').textContent = photos.length;
-  document.getElementById('stat-visible').textContent = activeSet.length;
-  document.getElementById('stat-cats').textContent = SECTIONS.filter(s => photos.some(p => p.kind === s.key)).length;
-  document.getElementById('stat-fav').textContent = favorites.size;
-  document.getElementById('stat-boards').textContent = boards.length;
-  renderTagbar();
-  renderBoardbar();
-}
-
-function buildCard(p, staggerIndex){
-  const div = document.createElement('div');
-  div.className = 'card';
-  div.dataset.id = p.id;
-  if (typeof staggerIndex === 'number'){
-    div.style.setProperty('--i', staggerIndex % 24);
-  }
-  const isFav = favorites.has(p.id);
-  const isPinned = isPinnedAnywhere(p.id);
-  div.innerHTML = `
-    <button class="fav-toggle ${isFav ? 'active' : ''}" onclick="event.stopPropagation();toggleFav(${p.id})">${icon(isFav ? 'starFill' : 'star')}</button>
-    <button class="pin-toggle ${isPinned ? 'active' : ''}" onclick="event.stopPropagation();openBoardModal(${p.id})">${icon('boards')}</button>
-    <div class="media-wrap" onclick="openLb(${p.id})">
-      ${p.video ? `<div class="video-badge">${icon('video')}</div>` : ''}
-      ${mediaTag(p, false)}
+  <div class="footer-nav">
+    <div class="footer-col">
+      <span class="eyebrow">Support</span>
+      <ul>
+        <li><a href="#">Sizing Guide</a></li>
+        <li><a href="#">Shipping &amp; Returns</a></li>
+        <li><a href="#">Track Order</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
     </div>
-    <div class="card-meta"><span>${p.title}</span><span class="cat-icon">${icon(p.kind)}</span></div>
-  `;
-  return div;
-}
+    <div class="footer-col">
+      <span class="eyebrow">Categories</span>
+      <ul>
+        <li><a href="#">Bodysuits</a></li>
+        <li><a href="#">Sets</a></li>
+        <li><a href="#">Essentials</a></li>
+        <li><a href="#">Activewear</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <span class="eyebrow">Corporate</span>
+      <ul>
+        <li><a href="#about">About RAWx</a></li>
+        <li><a href="index-b2b.html">Wholesale Terminal</a></li>
+        <li><a href="rawx-catalogue-dual-mode.html">Full Catalogue (Download)</a></li>
+        <li><a href="rawx-landing-embedded.html">Campaign Landing — FW26</a></li>
+        <li><a href="#">Factory Standards</a></li>
+        <li><a href="#">Careers</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <span class="eyebrow">Connect</span>
+      <ul>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">TikTok</a></li>
+        <li><a href="#">Pinterest</a></li>
+        <li><a href="#">Newsletter</a></li>
+      </ul>
+    </div>
+  </div>
 
-function observeSentinel(el){
-  if (io) io.disconnect();
-  io = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) appendMore();
-    });
-  }, { rootMargin: '600px' });
-  io.observe(el);
-}
+  <div class="trust-bar">
+    <div class="trust-item"><span class="dot"></span>Global Fulfillment</div>
+    <div class="trust-item"><span class="dot"></span>Secure Checkout</div>
+    <div class="trust-item"><span class="dot"></span>Factory Direct — Dhaka Origin</div>
+  </div>
 
-function appendMore(){
-  const prevCount = visibleCount;
-  visibleCount = Math.min(visibleCount + BATCH, activeSet.length);
-  const grid = document.getElementById('grid');
-  const oldSentinel = document.getElementById('sentinel');
-  if (oldSentinel) oldSentinel.remove();
+  <div class="footer-bottom">
+    <div class="logo">RAW<span class="x" style="color:var(--red);">x</span></div>
+    <div>© 2026 RAWx Industries. All specifications final.</div>
+  </div>
+</footer>
 
-  const newSlice = activeSet.slice(prevCount, visibleCount);
-  const frag = document.createDocumentFragment();
-  newSlice.forEach((p, i) => frag.appendChild(buildCard(p, i)));
-  grid.appendChild(frag);
-
-  if (visibleCount < activeSet.length){
-    const sentinel = document.createElement('div');
-    sentinel.id = 'sentinel';
-    grid.appendChild(sentinel);
-    observeSentinel(sentinel);
-  }
-  document.getElementById('status').textContent = `${Math.min(visibleCount, activeSet.length)} / ${activeSet.length} SHOWN`;
-  document.getElementById('stat-visible').textContent = activeSet.length;
-}
-
-function setMode(mode){ state.mode = mode; resetPaging(); render(); }
-function reshuffle(){ shuffleSeed = Date.now() % 100000; state.mode = 'shuffle'; resetPaging(); render(); }
-function setView(view){ state.view = view; resetPaging(); render(); }
-function onSearch(val){ state.query = val.trim(); resetPaging(); render(); }
-function toggleFavOnly(){ state.favOnly = !state.favOnly; resetPaging(); render(); }
-function toggleDash(){ state.dash = !state.dash; render(); }
-function toggleFav(id){
-  if (favorites.has(id)) favorites.delete(id); else favorites.add(id);
-  saveFavs();
-  render();
-  popToggle(id, '.fav-toggle');
-  if (document.getElementById('lightbox').style.display === 'flex') updateLbFavBtn();
-}
-
-function popToggle(id, selector){
-  const card = document.querySelector(`.card[data-id="${id}"]`);
-  const el = card && card.querySelector(selector);
-  if (!el) return;
-  el.classList.remove('pop');
-  void el.offsetWidth;
-  el.classList.add('pop');
-}
-
-/* ============================================================
-   TOAST
-============================================================ */
-let toastTimer = null;
-function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 1600);
-}
-
-/* ============================================================
-   SLIDESHOW
-============================================================ */
-const SPEED_OPTIONS = [1.5, 2, 3, 5, 8, 12];
-let speedIndex = 2; 
-let slideTimer = null;
-let slidePlaying = false;
-
-function updateSpeedBtn(){
-  document.getElementById('lb-speed').textContent = SPEED_OPTIONS[speedIndex] + 'S';
-}
-function cycleSpeed(){
-  speedIndex = (speedIndex + 1) % SPEED_OPTIONS.length;
-  updateSpeedBtn();
-  if (slidePlaying) armSlide();
-}
-function updatePlayBtn(){
-  const btn = document.getElementById('lb-play');
-  btn.innerHTML = icon(slidePlaying ? 'pause' : 'play');
-  btn.classList.toggle('active', slidePlaying);
-}
-function toggleSlideshow(){ slidePlaying ? stopSlideshow() : startSlideshow(); }
-function startSlideshow(){ slidePlaying = true; updatePlayBtn(); armSlide(); }
-function stopSlideshow(){
-  slidePlaying = false;
-  updatePlayBtn();
-  clearTimeout(slideTimer);
-  const bar = document.getElementById('lb-progress');
-  bar.classList.remove('running');
-  bar.style.width = '0%';
-}
-function armSlide(){
-  clearTimeout(slideTimer);
-  const secs = SPEED_OPTIONS[speedIndex];
-  const bar = document.getElementById('lb-progress');
-  bar.classList.remove('running');
-  bar.style.width = '0%';
-  void bar.offsetWidth;
-  requestAnimationFrame(() => {
-    bar.classList.add('running');
-    bar.style.transitionDuration = secs + 's';
-    bar.style.width = '100%';
-  });
-  slideTimer = setTimeout(() => { if (slidePlaying) navLb(1); }, secs * 1000);
-}
-
-/* ============================================================
-   ADD-TO-BOARD MODAL
-============================================================ */
-let modalPhotoId = null;
-function openBoardModal(photoId){
-  modalPhotoId = photoId;
-  const p = photos.find(x => x.id === photoId);
-  const thumbRow = document.getElementById('board-modal-thumb');
-  thumbRow.innerHTML = p.video
-    ? `<div style="width:44px;height:44px;background:#222;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${icon('video')}</div><span>${p.title}</span>`
-    : `<img src="${p.src}" alt=""><span>${p.title}</span>`;
-  renderBoardModalList();
-  document.getElementById('board-modal-overlay').classList.add('open');
-  document.getElementById('board-new-input').value = '';
-}
-function closeBoardModal(){
-  document.getElementById('board-modal-overlay').classList.remove('open');
-  const pinnedId = modalPhotoId;
-  modalPhotoId = null;
-  render();
-  if (pinnedId !== null) popToggle(pinnedId, '.pin-toggle');
-  if (document.getElementById('lightbox').style.display === 'flex') updateLbFavBtn();
-}
-function renderBoardModalList(){
-  const list = document.getElementById('board-modal-list');
-  if (!boards.length){
-    list.innerHTML = `<div class="board-empty-msg" style="padding:22px;text-align:center;color:var(--dim2);font-size:10px;">NO BOARDS YET — CREATE ONE BELOW</div>`;
-    return;
-  }
-  list.innerHTML = '';
-  boards.forEach(b => {
-    const checked = boardItems[b.id] && boardItems[b.id].has(modalPhotoId);
-    const row = document.createElement('div');
-    row.className = 'board-row' + (checked ? ' checked' : '');
-    row.innerHTML = `
-      <span class="board-checkbox">${checked ? icon('check') : ''}</span>
-      <span>${escapeHtml(b.name)}</span>
-      <span style="margin-left:auto;color:var(--dim2);font-size:9px;">${boardCount(b.id)}</span>
-      <span style="opacity:0.5;padding:4px;" onclick="event.stopPropagation();deleteBoard('${b.id}');renderBoardModalList();">${icon('trash')}</span>
-    `;
-    row.onclick = (e) => {
-      if (e.target.closest('span[onclick]')) return;
-      toggleBoardItem(b.id, modalPhotoId);
-      renderBoardModalList();
-    };
-    list.appendChild(row);
-  });
-}
-function submitNewBoard(){
-  const input = document.getElementById('board-new-input');
-  const name = input.value.trim();
-  if (!name) return;
-  const id = createBoard(name);
-  if (id && modalPhotoId !== null) toggleBoardItem(id, modalPhotoId);
-  input.value = '';
-  renderBoardModalList();
-}
-
-/* ============================================================
-   LIGHTBOX
-============================================================ */
-function openLb(id){
-  lbIndex = activeSet.findIndex(p => p.id === id);
-  zoomed = false;
-  showLbFrame();
-  const lb = document.getElementById('lightbox');
-  lb.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-  void lb.offsetWidth;
-  requestAnimationFrame(() => lb.classList.add('open'));
-}
-
-function updateLbFavBtn(){
-  const p = activeSet[lbIndex];
-  const btn = document.getElementById('lb-fav');
-  const isFav = favorites.has(p.id);
-  btn.innerHTML = icon(isFav ? 'starFill' : 'star');
-  btn.classList.toggle('active', isFav);
-  const boardBtn = document.getElementById('lb-board');
-  boardBtn.classList.toggle('active', isPinnedAnywhere(p.id));
-}
-
-function toggleFavInLb(){ toggleFav(activeSet[lbIndex].id); }
-
-function copyLbPath(){
-  const text = BASE + activeSet[lbIndex].file;
-  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => showToast('PATH COPIED'));
-  else showToast('COPY UNSUPPORTED');
-}
-
-function getTechPrompt(kind) {
-    if(kind === 'hunkemoller') return "Hunkemoller commercial photography, studio lighting, hyper-detailed fabric, 85mm lens";
-    if(kind === 'activewear') return "High contrast athletic styling, utilitarian aesthetic, dynamic lighting, technical fabric";
-    if(kind === 'twoset') return "Fashion catalog layout, coordinated 2-piece set, brutalist backdrop, sharp focus";
-    if(kind === 'social') return "Social media editorial framing, 35mm lens, raw film aesthetic, high engagement format";
-    return "8K resolution, Hasselblad quality, industrial realism, cinematic lighting protocol";
-}
-
-function showLbFrame(){
-  const p = activeSet[lbIndex];
-  const holder = document.getElementById('lb-media-holder');
-  holder.innerHTML = mediaTag(p, true);
-  const mediaEl = holder.querySelector('img,video');
-  if (mediaEl && mediaEl.tagName === 'IMG'){
-    mediaEl.onclick = () => { zoomed = !zoomed; mediaEl.classList.toggle('zoomed', zoomed); };
-  }
-  document.getElementById('lb-cat-icon').innerHTML = icon(p.kind);
-  document.getElementById('lb-title').textContent = `${p.title.toUpperCase()} // FRM ${lbIndex + 1} OF ${activeSet.length}`;
-  document.getElementById('lb-download').href = p.src;
-  document.getElementById('lb-download').setAttribute('download', p.file);
-  document.getElementById('lb-prompt-text').textContent = getTechPrompt(p.kind);
-  
-  updateLbFavBtn();
-  preloadNeighbors();
-  renderFilmstrip();
-  if (slidePlaying) armSlide();
-}
-
-function preloadNeighbors(){
-  [1, -1].forEach(dir => {
-    const idx = (lbIndex + dir + activeSet.length) % activeSet.length;
-    const p = activeSet[idx];
-    if (p && !p.video){ const img = new Image(); img.src = p.src; }
-  });
-}
-
-function renderFilmstrip(){
-  const strip = document.getElementById('filmstrip');
-  strip.innerHTML = '';
-  const frag = document.createDocumentFragment();
-  activeSet.forEach((p, i) => {
-    const el = document.createElement(p.video ? 'div' : 'img');
-    el.className = 'fs-thumb' + (i === lbIndex ? ' active' : '');
-    if (!p.video){ el.src = p.src; el.loading = 'lazy'; } else { el.innerHTML = icon('video'); el.style.cssText += 'display:flex;align-items:center;justify-content:center;background:#222;color:#fff;'; }
-    el.onclick = () => { lbIndex = i; zoomed = false; showLbFrame(); };
-    frag.appendChild(el);
-  });
-  strip.appendChild(frag);
-  const activeThumb = strip.querySelector('.active');
-  if (activeThumb) activeThumb.scrollIntoView({ inline: 'center', block: 'nearest' });
-}
-
-function navLb(dir){ lbIndex = (lbIndex + dir + activeSet.length) % activeSet.length; zoomed = false; showLbFrame(); }
-
-function closeLb(){
-  stopSlideshow();
-  const lb = document.getElementById('lightbox');
-  lb.classList.remove('open');
-  document.body.style.overflow = '';
-  if (document.fullscreenElement) document.exitFullscreen();
-  setTimeout(() => {
-    lb.style.display = 'none';
-    document.getElementById('lb-media-holder').innerHTML = '';
-  }, 300);
-}
-function toggleFullscreen(){
-  const lb = document.getElementById('lightbox');
-  if (!document.fullscreenElement) lb.requestFullscreen?.();
-  else document.exitFullscreen?.();
-}
-
-document.addEventListener('keydown', e => {
-  if (document.getElementById('board-modal-overlay').classList.contains('open')){
-    if (e.key === 'Escape') closeBoardModal();
-    return;
-  }
-  if (document.getElementById('lightbox').style.display !== 'flex'){
-    if (e.key === '/' ){ e.preventDefault(); document.getElementById('search')?.focus(); }
-    return;
-  }
-  if (e.key === 'Escape') closeLb();
-  if (e.key === 'ArrowRight') navLb(1);
-  if (e.key === 'ArrowLeft') navLb(-1);
-  if (e.key === 'f' || e.key === 'F') toggleFullscreen();
-  if (e.key === 'p' || e.key === 'P') toggleSlideshow();
-  if (e.key === 'b' || e.key === 'B') openBoardModal(activeSet[lbIndex].id);
-  if (e.key === ' '){ e.preventDefault(); toggleFavInLb(); }
-});
-
-let touchStartX = 0;
-document.getElementById('lb-stage').addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
-document.getElementById('lb-stage').addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  if (Math.abs(dx) > 50) navLb(dx > 0 ? -1 : 1);
-});
-
-/* ============================================================
-   MAGNETIC MICRO-INTERACTION
-============================================================ */
-const MAGNETIC_SELECTOR = '.btn, .tag-chip, .board-chip, .lb-btn, .b2b-btn';
-const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-let magneticEl = null;
-
-function resetMagnetic(el){
-  if (!el) return;
-  el.style.transform = '';
-}
-
-if (!reduceMotion){
-  document.addEventListener('mousemove', (e) => {
-    const el = e.target.closest ? e.target.closest(MAGNETIC_SELECTOR) : null;
-    if (el){
-      if (magneticEl && magneticEl !== el) resetMagnetic(magneticEl);
-      magneticEl = el;
-      const r = el.getBoundingClientRect();
-      const relX = e.clientX - r.left - r.width / 2;
-      const relY = e.clientY - r.top - r.height / 2;
-      const strength = 0.16;
-      const maxPull = 6;
-      const tx = Math.max(-maxPull, Math.min(maxPull, relX * strength));
-      const ty = Math.max(-maxPull, Math.min(maxPull, relY * strength));
-      el.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
-    } else if (magneticEl){
-      resetMagnetic(magneticEl);
-      magneticEl = null;
-    }
-  }, { passive: true });
-
-  document.addEventListener('mouseleave', () => {
-    if (magneticEl){ resetMagnetic(magneticEl); magneticEl = null; }
-  });
-}
-
-/* ============================================================
-   FIXED INIT FUNCTION FOR ALL ICONS
-============================================================ */
-function initLbIcons(){
-    const iconsById = {
-        'lb-fullscreen': 'fullscreen', 
-        'lb-download': 'download', 
-        'lb-copy': 'copy', 
-        'lb-board': 'boards', 
-        'lb-play': 'play',
-        'board-modal-close': 'close',
-        'board-new-btn': 'plus'
-    };
-    for (let id in iconsById) {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = icon(iconsById[id]);
-    }
-
-    const closeBtn = document.querySelector('.lb-close');
-    if (closeBtn) closeBtn.innerHTML = icon('close');
-    
-    const prevBtn = document.querySelector('.lb-nav.prev');
-    if (prevBtn) prevBtn.innerHTML = icon('prev');
-    
-    const nextBtn = document.querySelector('.lb-nav.next');
-    if (nextBtn) nextBtn.innerHTML = icon('next');
-}
-
-/* INITS */
-window.addEventListener('DOMContentLoaded', () => {
-    initLbIcons();
-    updateSpeedBtn();
-    render();
-});
-</script>
+<script src="core-assets.js"></script>
+<script src="app-main.js"></script>
+<script src="page-transition.js"></script>
 </body>
 </html>
