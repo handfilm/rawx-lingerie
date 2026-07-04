@@ -132,7 +132,7 @@ window.PHOTOS = RAW.map((filename, i) => {
           filename.includes('ig') || filename.includes('pin') ? 'social' : 'scrap',
     file: filename,
     video: isVideo,
-    src: (isVideo ? BASE_VID : BASE_IMG) + encodeURIComponent(filename)
+    src: (isVideo ? BASE_VID : BASE_IMG) + filename
   };
 });
 
