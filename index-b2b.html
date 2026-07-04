@@ -140,7 +140,14 @@
 <div class="toast" id="toast"></div>
 
 <script src="core-assets.js"></script>
-<script src="app-b2b.js"></script>
+<script>
+  // Ensure the app-b2b.js only loads after core-assets is ready
+  window.addEventListener('load', function() {
+    var script = document.createElement('script');
+    script.src = "app-b2b.js";
+    document.body.appendChild(script);
+  });
+</script>
 <script src="page-transition.js"></script>
 </body>
 </html>
