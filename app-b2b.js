@@ -264,7 +264,7 @@ function renderDash(){
 
 function mediaTag(p, forLightbox){
   if (p.video){
-    return `<video src="${p.src}" ${forLightbox ? 'controls autoplay' : 'muted loop playsinline'} preload="metadata" onloadeddata="this.classList.add('loaded');this.parentElement.classList.add('loaded')"></video>`;
+    return `<video src="${p.src}" ${forLightbox ? 'controls autoplay' : 'muted loop playsinline autoplay'} preload="metadata" onloadeddata="this.classList.add('loaded');this.parentElement.classList.add('loaded')"></video>`;
   }
   return `<img src="${p.src}" alt="${p.title}" loading="lazy" onload="this.classList.add('loaded');this.parentElement.classList.add('loaded')" onerror="this.parentElement.classList.add('loaded');this.alt='MISSING: ${p.file}'">`;
 }
