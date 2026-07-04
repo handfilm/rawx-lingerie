@@ -1,5 +1,5 @@
 /* ============================================================
-   RAWx ENGINE SPINE (V5 - CLEANED)
+   RAWx CORE ASSET SPINE (V5 - CLEANED & FIXED)
 ============================================================ */
 
 const BASE_IMG = 'assets/images/';
@@ -11,6 +11,7 @@ const RAW = [
 
 function isVideoExt(fn){ return /\.(mp4|webm|mov)$/i.test(fn); }
 
+// এটিই আপনার আসল PHOTOS অ্যারে তৈরি করবে
 const PHOTOS = RAW.map((filename, i) => {
   return {
     id: i,
@@ -22,6 +23,5 @@ const PHOTOS = RAW.map((filename, i) => {
   };
 });
 
-// গ্লোবাল ভেরিয়েবল এক্সপোজ করা
-window.PHOTOS = PHOTOS;
+window.PHOTOS = PHOTOS; // এটি নিশ্চিত করে যে অন্য ফাইলগুলো PHOTOS কে চিনতে পারবে
 console.log("RAWx Engine: Assets Loaded (" + PHOTOS.length + " frames)");
