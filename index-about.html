@@ -22,7 +22,7 @@
 <header class="site-header">
   <a class="brand brand-link" href="index.html" title="Return to Consumer Site">
     <div class="site-title">RAWx_<span>ARCHIVE</span></div>
-    <div class="brand-sub">OS // B2B procurement terminal v3 <em>— return to D2C ↗</em></div>
+    <div class="brand-sub">OS // Google Drive Powered Engine <em>— return to D2C ↗</em></div>
   </a>
   <div class="header-stats">
     <div class="hstat accent"><b id="stat-total"></b><span>Total Frames</span></div>
@@ -36,7 +36,7 @@
   <div class="hero-inner">
     <div class="hero-eyebrow">RAWx Lingerie // B2B Protocol</div>
     <h1 class="hero-headline">Bangladesh to Global —<br><em>Wholesale Procurement Terminal</em></h1>
-    <p class="hero-body">Factory-direct intimatewear and technical bodywear, sourced and produced in Dhaka. Every frame below is a live production reference — spec it, request a quote, or pull the tech-pack directly. No middlemen, no minimums hidden in a PDF.</p>
+    <p class="hero-body">Factory-direct intimatewear and technical bodywear, sourced and produced in Dhaka. Every frame below is a live production reference — spec it, request a quote, or pull the tech-pack directly. Powered by Google Drive automated assets.</p>
     <div class="hero-coords">
       <div class="hero-coord">Origin<b>Dhaka, BD</b></div>
       <div class="hero-coord">Lead Time<b>25–35 Days</b></div>
@@ -95,10 +95,6 @@
           <div class="inq-spec-cell"><span>Available Sizes</span><b id="inq-sizes"></b></div>
           <div class="inq-spec-cell"><span>Frame Ref</span><b id="inq-ref"></b></div>
         </div>
-        <div class="inq-spec-grid" id="inq-extra-grid" style="display:none;">
-          <div class="inq-spec-cell"><span>Price</span><b id="inq-price"></b></div>
-          <div class="inq-spec-cell"><span>Colorways</span><b id="inq-colorways"></b></div>
-        </div>
       </div>
     </div>
     <form class="inq-form" id="inq-form" onsubmit="submitInquiry(event)">
@@ -107,11 +103,6 @@
         <div class="inq-field"><label>Company</label><input type="text" id="inq-company" required></div>
         <div class="inq-field"><label>Email</label><input type="email" id="inq-email" required></div>
       </div>
-      <div class="inq-row">
-        <div class="inq-field"><label>Country</label><input type="text" id="inq-country" required></div>
-        <div class="inq-field"><label>Target Quantity</label><input type="text" id="inq-qty" placeholder="e.g. 500 units"></div>
-      </div>
-      <div class="inq-field"><label>Notes</label><textarea id="inq-notes" placeholder="Colorways, customization, delivery window..."></textarea></div>
       <button type="submit" class="inq-submit" id="inq-submit-btn"><span>Send Inquiry</span></button>
     </form>
   </div>
@@ -119,7 +110,8 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="core-assets.js"></script>
+<!-- Ensure this points to your Drive-configured asset file -->
+<script src="core-assets-about.js"></script>
 <script src="app-about.js"></script>
 <script src="page-transition.js"></script>
 </body>
