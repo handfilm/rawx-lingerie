@@ -1613,14 +1613,15 @@ const DRIVE_MAP_ABOUT = {
 // সব ফাইলের নাম স্বয়ংক্রিয়ভাবে পাওয়া
 const RAW_ABOUT = Object.keys(DRIVE_MAP_ABOUT);
 
+// সব ফাইলের আইডি দিয়ে সঠিক লিঙ্ক তৈরি করার ফাংশন
 window.PHOTOS_ABOUT = RAW_ABOUT.map((filename, i) => {
   const driveId = DRIVE_MAP_ABOUT[filename];
   return {
     id: i,
     title: filename.replace(/\.[^/.]+$/, ""),
     file: filename,
-    // এখানে সরাসরি ইমেজ এমবেড লিঙ্ক জেনারেট হচ্ছে
-    src: driveId ? `https://lh3.googleusercontent.com/d/${driveId}=w600` : ''
+    // এটিই আসল ফিক্স: প্রক্সি লিঙ্কটি সঠিকভাবে কনক্যাট করা হয়েছে
+    src: driveId ? `https://lh3.googleusercontent.com/d/${driveId}` : ''
   };
 });
 console.log("Archive OS Loaded with " + window.PHOTOS_ABOUT.length + " assets.");
