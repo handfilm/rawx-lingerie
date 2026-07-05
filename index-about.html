@@ -29,6 +29,7 @@
     <div class="hstat"><b id="stat-visible"></b><span>Visible</span></div>
     <div class="hstat"><b id="stat-cats"></b><span>Categories</span></div>
     <div class="hstat"><b id="stat-fav"></b><span>Favorites</span></div>
+    <div class="hstat"><b id="stat-boards"></b><span>Boards</span></div>
   </div>
 </header>
 
@@ -36,7 +37,7 @@
   <div class="hero-inner">
     <div class="hero-eyebrow">RAWx Lingerie // B2B Protocol</div>
     <h1 class="hero-headline">Bangladesh to Global —<br><em>Wholesale Procurement Terminal</em></h1>
-    <p class="hero-body">Factory-direct intimatewear and technical bodywear, sourced and produced in Dhaka. Every frame below is a live production reference — spec it, request a quote, or pull the tech-pack directly. Powered by Google Drive automated assets.</p>
+    <p class="hero-body">Factory-direct intimatewear and technical bodywear, sourced and produced in Dhaka. Every frame below is a live production reference — spec it, request a quote, pin it to a board, or pull the tech-pack directly. Powered by Google Drive automated assets.</p>
     <div class="hero-coords">
       <div class="hero-coord">Origin<b>Dhaka, BD</b></div>
       <div class="hero-coord">Lead Time<b>25–35 Days</b></div>
@@ -48,8 +49,25 @@
 
 <div class="toolbar" id="toolbar"></div>
 <div class="tagbar" id="tagbar"></div>
+<div class="boardbar" id="boardbar"></div>
 <div class="dash" id="dash"></div>
 <div class="gallery" id="grid"></div>
+
+<!-- Pin-to-board modal -->
+<div class="modal-overlay" id="board-modal-overlay" onclick="if(event.target===this) closeBoardModal()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <span>PIN TO BOARD</span>
+      <button onclick="closeBoardModal()" id="board-modal-close"></button>
+    </div>
+    <div class="modal-thumb-row" id="board-modal-thumb"></div>
+    <div class="board-list" id="board-modal-list"></div>
+    <div class="board-new-row">
+      <input id="board-new-input" placeholder="CREATE NEW BOARD" maxlength="40" onkeydown="if(event.key==='Enter') submitNewBoard()">
+      <button onclick="submitNewBoard()" id="board-new-btn"></button>
+    </div>
+  </div>
+</div>
 
 <!-- Lightbox -->
 <div id="lightbox">
@@ -57,10 +75,12 @@
     <div class="lb-title-wrap"><span class="cat-icon" id="lb-cat-icon"></span><span id="lb-title">FRAME</span></div>
     <div class="lb-actions">
       <button class="lb-btn" id="lb-fav" onclick="toggleFavInLb()" title="Favorite"></button>
+      <button class="lb-btn" id="lb-board" onclick="openBoardModal(activeSet[lbIndex].id)" title="Pin to board"></button>
       <button class="lb-btn" id="lb-copy" onclick="copyLbPath()" title="Copy filename"></button>
       <button class="lb-btn lb-btn-text" id="lb-speed" onclick="cycleSpeed()" title="Slideshow speed"></button>
       <button class="lb-btn" id="lb-play" onclick="toggleSlideshow()" title="Slideshow"></button>
       <button class="lb-btn" id="lb-fullscreen" onclick="toggleFullscreen()" title="Fullscreen"></button>
+      <button class="lb-btn" id="lb-inquiry" onclick="openInquiry(activeSet[lbIndex].id)" title="Request quote"></button>
       <a class="lb-btn" id="lb-download" download title="Download"></a>
       <button class="lb-btn lb-close" onclick="closeLb()" title="Close"></button>
     </div>
@@ -110,7 +130,7 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Ensure this points to your Drive-configured asset file -->
+<!-- Drive-backed asset registry, loaded before the engine -->
 <script src="core-assets-about.js"></script>
 <script src="app-about.js"></script>
 <script src="page-transition.js"></script>
