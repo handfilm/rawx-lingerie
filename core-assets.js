@@ -1732,8 +1732,4 @@ function allKinds(){
   var seen = {};
   PHOTOS.forEach(function(p){ seen[p.kind] = true; });
   return Object.keys(seen);
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 1fc6dc97c46811513ca56453620c6a1ac307a501
